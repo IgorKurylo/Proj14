@@ -18,9 +18,12 @@ typedef struct
     int address;
 }SymbolTable;
 
-void allocateTable(SymbolTable *table[]);
-int addSymbol(SymbolTable row);
+extern SymbolTable *table;
+extern int tableSize;
+
+void allocateTable();
+int addSymbol(SymbolTable row,int currentIndex);
 int deleteSymbol(int index);
-int checkIfSymbolExists(char symbolName);
+int checkIfSymbolExists(char *symbolName);
 void freeTable();
 #endif //PROJECTMAMAN14_SYMBOLTABLE_H

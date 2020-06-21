@@ -127,7 +127,14 @@ int isCommandExists(char *command,int *numOfOperands) {
 }
 
 int isRegister(char *operand,int linerNumber) {
-
+    int i=0;
+    while (registers[i]){
+        if(strcmp(operand,registers[i])==0){
+            return i;
+        }
+        i++;
+    }
+    return -1;
 }
 
 
@@ -147,13 +154,27 @@ void parseTwoOperands(char *operands,char **firstOperand,char **secondOperand)
         }
         firstOp=(char*)malloc(counter*sizeof(char ));
         strncpy(firstOp,originalStr,counter);
-        // set a two operands.
+        // set a first and second operand.
         *firstOperand=firstOp;
         *secondOperand=(separator+1);
+        //TODO: validate the operand
+        //TODO: set which address type the operands
     }
 
 }
-void parseOneOperand(char *line,char **oneOperand){
+void parseOneOperand(char *operands,char **oneOperand){
+    int counter=0;
+    char *orgOperand=operands;
+    while (*operands!='\0'){
+        operands++;
+        counter++;
+    }
+    *oneOperand=(char *)malloc(sizeof(char)*counter);
+    if(orgOperand!=NULL){
+        strncpy(*oneOperand,orgOperand,counter);
+    }
+    //TODO: validate the operand
+    //TODO: set which address type the operand
 
 }
 int parseCommand(char *line, char **command,int lineNumber,char **firstOp,char **secondOp) {
@@ -213,6 +234,7 @@ int parseCommand(char *line, char **command,int lineNumber,char **firstOp,char *
                 free(operands);
                 break;
         }
+        //TODO: TBD set addressing type
     }
     return 1;
 }
