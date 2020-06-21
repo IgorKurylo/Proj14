@@ -1,0 +1,27 @@
+//
+// Created by Igork on 30/05/2020.
+//
+
+#ifndef PROJECTMAMAN14_CONSTANST_H
+#define NO_ERROR "NO ERROR"
+#define MAX_LINE_SIZE 80
+#define MAX_LINES_FILE 100
+#define MAX_SYMBOL_SIZE 31
+#define ERROR "ERROR"
+#define TRUE 1
+#define FALSE 0
+#define FAIL 0
+#define SUCCESS  1
+#define NUMBER_OF_COMMANDS 16
+#define NUMBER_OF_REGISTERS 8
+#define COMMAND_SIZE 3
+#define IMMEDIATE_ADDRESSING 0
+#define DIRECT_ADDRESSING 1
+#define INDEXED_ADDRESSING 2
+#define REG_ADDRESSING 3
+
+
+
+
+
+#endif //PROJECTMAMAN14_CONSTANST_H
