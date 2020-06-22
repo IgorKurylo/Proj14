@@ -21,11 +21,11 @@ const HashMap asm_commands[] =
                 {"dec",  {8,  4, 1}},
                 {"jmp",  {9,  1, 1}},
                 {"bne",  {10, 2, 1}},
-                {"red",  {11, 1}},
-                {"prn",  {12, 1}},
+                {"red",  {11, 1,0}},
+                {"prn",  {12, 1,1}},
                 {"jsr",  {13, 3, 1}},
-                {"rst",  {14, 0}},
-                {"stop", {15, 0}}
+                {"rst",  {14, 0,0}},
+                {"stop", {15, 0,0}}
         };
 const  char *directives[]={".string",".data",".extern",".entry"};
 const char *registers[]={"r0","r1","r2","r3","r4","r5","r6","r7"};
@@ -55,6 +55,7 @@ char *skipLabel(char *line) {
     line++;
     return line;
 }
+
 int isAlphaNumeric(const char *str) {
     return (*str >= 'a' && *str <= 'z') || (*str >= 'A' && *str <= 'Z');
 }
@@ -113,7 +114,6 @@ char *parseLabel(char *line, char **labelName,int lineNumber) {
     return NULL;
 }
 
-
 int isCommandExists(char *command,int *numOfOperands) {
     int i = 0;
     while (asm_commands[i].key) {
@@ -136,11 +136,47 @@ int isRegister(char *operand,int linerNumber) {
     }
     return -1;
 }
+int isValueNumber(char *operand){
+    char *sighNumber;
+    sighNumber=strchr(operand,'#');
+
+    if(sighNumber!=NULL){
+        sighNumber++;
+        if(strchr(sighNumber,'+')!=NULL || strchr(sighNumber,'-')!=NULL) {
+            sighNumber++;
+            if (isNumber(sighNumber)) {
+                return 1;
+            }
+        }else{
+            if (isNumber(sighNumber)) {
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+int validateOperand(char *operand,int lineNumber,int *addressType){
+
+    if(!isRegister(operand,lineNumber)){
+        *addressType=REG_ADDRESSING;
+        return 1 ;
+    }
+    if(!isAlphaNumeric(operand)){
+        *addressType=DIRECT_ADDRESSING;
+        return 0;
+    }
+    if(!isValueNumber(operand)){
+        *addressType=IMMEDIATE_ADDRESSING;
+        return 1;
+    }
+    return 0;
+}
 
 
 void parseTwoOperands(char *operands,char **firstOperand,char **secondOperand)
 {
-    char *separator,*firstOp,*secondOp,*originalStr=operands;
+    char *separator,*firstOp=NULL,*originalStr=operands;
     int counter=0;
 
     skipWhitesSpaces(operands);
@@ -152,13 +188,11 @@ void parseTwoOperands(char *operands,char **firstOperand,char **secondOperand)
             operands++;
             counter++;
         }
-        firstOp=(char*)malloc(counter*sizeof(char ));
-        strncpy(firstOp,originalStr,counter);
-        // set a first and second operand.
-        *firstOperand=firstOp;
-        *secondOperand=(separator+1);
-        //TODO: validate the operand
-        //TODO: set which address type the operands
+        *firstOperand=(char*)malloc(counter*sizeof(char));
+        if(*firstOperand!=NULL) {
+            strncpy(*firstOperand, originalStr, counter);
+            *secondOperand = (separator + 1);
+        }
     }
 
 }
@@ -173,14 +207,15 @@ void parseOneOperand(char *operands,char **oneOperand){
     if(orgOperand!=NULL){
         strncpy(*oneOperand,orgOperand,counter);
     }
-    //TODO: validate the operand
-    //TODO: set which address type the operand
 
 }
-int parseCommand(char *line, char **command,int lineNumber,char **firstOp,char **secondOp) {
+int isJmpCommand(char *command){
+    return strcmp(command,"jmp");
+}
+int parseCommand(char *line, char **command,int lineNumber,int *addressingType) {
     int i = 0;
     int counter = 0,len=0;
-    char *command_operands = NULL, *parserCommand, *originalCommandLine,*operands;
+    char *command_operands = NULL, *parserCommand, *originalCommandLine,*operands, *firstOp = NULL,*secondOp=NULL;
     int numOfOperand;
     /*Skip label if exists and skip white or tab spaces*/
     if (*line != ' ') {
@@ -212,7 +247,6 @@ int parseCommand(char *line, char **command,int lineNumber,char **firstOp,char *
         free(parserCommand);
         return 0;
     }else{
-        // get operand after a command
         if(numOfOperand>=1) {
             counter = 0;
             operands = (char *) malloc(sizeof(char) * (strlen(command_operands) - counter));
@@ -221,17 +255,39 @@ int parseCommand(char *line, char **command,int lineNumber,char **firstOp,char *
                 operands[counter++] = *command_operands;
             }
             operands[counter-1] = '\0';
+
         }
         switch (numOfOperand) {
             case 0:
+
                 break;
             case 1:
-                parseOneOperand(operands,firstOp);
-                free(operands);
+                // get operand after a command
+                if(!isJmpCommand(*command)){
+                    *addressingType=RELATIVE_ADDRESSING;
+                }else{
+                    parseOneOperand(operands,&firstOp);
+                    if(firstOp!=NULL) {
+                        if (validateOperand(firstOp, lineNumber, addressingType)) {
+                                printf("Command %s  Operand %s Address Type %d",*command,firstOp,*addressingType);
+                        }
+                    }else{
+                        printf("Command %s must have %d operands \n",*command,numOfOperand);
+                    }
+                    free(operands);
+                }
+
                 break;
             case 2:
-                parseTwoOperands(operands,firstOp,secondOp);
+                parseTwoOperands(operands,&firstOp,&secondOp);
+                if(firstOp!=NULL && secondOp!=NULL){
+                    printf("Command %s Operand [%s,%s]  Address Type %d",*command,firstOp,secondOp,*addressingType);
+                }else{
+                    printf("Command %s must have %d operands \n",*command,numOfOperand);
+                }
                 free(operands);
+                break;
+            default:
                 break;
         }
         //TODO: TBD set addressing type

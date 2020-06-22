@@ -10,10 +10,13 @@
 enum STATEMENT{
     SYMBOL = 1,COMMAND=2,VIRTUAL_INSTRUCTION=5,EXTERN=3,ENTRY=4
 };
+enum TYPE_SYMBOL{
+    code=1,data=2
+};
 typedef struct
 {
     char name[MAX_SYMBOL_SIZE];
-    enum STATEMENT statement;
+    enum TYPE_SYMBOL type;
     int is_extern;
     int address;
 }SymbolTable;
