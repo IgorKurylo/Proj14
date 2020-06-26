@@ -8,7 +8,7 @@ int isEmptyLine(char *line);
 int isComment(char *line);
 int isSymbol(char *line,int index);
 int isRegister(char *line,char *registers,int index);
-int parseCommand(char *line,char **asm_command,int lineNumber,int *addressingType);
+int parseCommand(char *line,char **asm_command,int lineNumber,int *addressingType,int *IC,int *DC);
 int isLegalLabel(char *label);
 int isCommandExists(char *command);
 int parseDirective(char *line,char **data,int lineNumber);
@@ -27,4 +27,5 @@ void convertToBase2(int number);
 void collectLabels(char *labelName,int lineNumber);
 int validateOperand(char *operand,int lineNumber);
 int isValueNumber(char *operand);
+int isExternEntryDirective(char *line);
 #endif //PROJECTMAMAN14_HELPERSMETHODS_H

@@ -7,7 +7,7 @@
 int main(int argc, char *argv[]) {
 
     int numberOfFiles = argc, fileLines = 0, i = 0, index = 0;
-    int IC = 100, DC = 0;
+    int IC = 100, DC = 0,lengthOfWords;
 
     AsmFileContent *asmContentFile = NULL;
 
@@ -28,7 +28,10 @@ int main(int argc, char *argv[]) {
             if (file != NULL) {
                 asmContentFile = fileContent(file, &fileLines);
                 for (index = 0; index < fileLines; index++) {
-                    firstRead(asmContentFile[index],  &IC,  &DC, index);
+                    firstRead(asmContentFile[index],  &IC,&lengthOfWords,  &DC, index);
+                    IC=IC+lengthOfWords;
+                    IC++;
+
                 }
             }
         }

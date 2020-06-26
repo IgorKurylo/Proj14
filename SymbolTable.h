@@ -15,7 +15,7 @@ enum TYPE_SYMBOL{
 };
 typedef struct
 {
-    char name[MAX_SYMBOL_SIZE];
+    char *name;
     enum TYPE_SYMBOL type;
     int is_extern;
     int address;
@@ -24,7 +24,7 @@ typedef struct
 extern SymbolTable *table;
 extern int tableSize;
 
-void allocateTable();
+SymbolTable *allocateTable();
 int addSymbol(SymbolTable row,int currentIndex);
 int deleteSymbol(int index);
 int checkIfSymbolExists(char *symbolName);

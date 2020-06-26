@@ -21,14 +21,15 @@ const HashMap asm_commands[] =
                 {"dec",  {8,  4, 1}},
                 {"jmp",  {9,  1, 1}},
                 {"bne",  {10, 2, 1}},
-                {"red",  {11, 1,0}},
-                {"prn",  {12, 1,1}},
+                {"red",  {11, 1, 0}},
+                {"prn",  {12, 1, 1}},
                 {"jsr",  {13, 3, 1}},
-                {"rst",  {14, 0,0}},
-                {"stop", {15, 0,0}}
+                {"rst",  {14, 0, 0}},
+                {"stop", {15, 0, 0}}
         };
-const  char *directives[]={".string",".data",".extern",".entry"};
-const char *registers[]={"r0","r1","r2","r3","r4","r5","r6","r7"};
+const char *directives[] = {".string", ".data", ".extern", ".entry"};
+const char *registers[] = {"r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7"};
+
 void trimWhiteSpaces(char *line, int size) {
     int i = 0, whiteSpaceCnt = 0;
     if (size > 0) {
@@ -79,20 +80,20 @@ int isComment(const char *line) {
     return 0;
 }
 
-char *parseLabel(char *line, char **labelName,int lineNumber) {
+char *parseLabel(char *line, char **labelName, int lineNumber) {
     char *label = NULL;
     char *originalLine = line;
     int count = 0;
     if (strchr(originalLine, ':')) {
-        while (*line != ':' && *line!=' ') {
+        while (*line != ':' && *line != ' ') {
             line++;
             count++;
         }
-        if(count==0){
-            printf("[Error] - Label can't start with spaces, line %d",lineNumber);
+        if (count == 0) {
+            printf("[Error] - Label can't start with spaces, line %d", lineNumber);
         }
-        if(count>MAX_SYMBOL_SIZE){
-            printf("[Error] - Label too large only %d characters, line %d",MAX_SYMBOL_SIZE,lineNumber);
+        if (count > MAX_SYMBOL_SIZE) {
+            printf("[Error] - Label too large only %d characters, line %d", MAX_SYMBOL_SIZE, lineNumber);
             return NULL;
         }
         label = malloc(sizeof(char) * count);
@@ -100,25 +101,25 @@ char *parseLabel(char *line, char **labelName,int lineNumber) {
             printf("Allocation fail\n");
             return NULL;
         }
-        if(!isAlphaNumeric(label)){
-            printf("[Error] - Syntax error, label must be Alpha Numeric, line %d",lineNumber);
+        if (!isAlphaNumeric(label)) {
+            printf("[Error] - Syntax error, label must be Alpha Numeric, line %d", lineNumber);
             return NULL;
         }
         strncpy(label, originalLine, count);
         *labelName = label;
         return label;
-    }else{
-        printf("[Error] - Syntax error, label must be defined with ':' in the end, line %d",lineNumber);
+    } else {
+        printf("[Error] - Syntax error, label must be defined with ':' in the end, line %d", lineNumber);
     }
 
     return NULL;
 }
 
-int isCommandExists(char *command,int *numOfOperands) {
+int isCommandExists(char *command, int *numOfOperands) {
     int i = 0;
     while (asm_commands[i].key) {
         if (strcmp(command, asm_commands[i].key) == 0) {
-            *numOfOperands=asm_commands[i].value.numParams;
+            *numOfOperands = asm_commands[i].value.numParams;
             return i;
         }
         i++;
@@ -126,28 +127,29 @@ int isCommandExists(char *command,int *numOfOperands) {
     return -1;
 }
 
-int isRegister(char *operand,int linerNumber) {
-    int i=0;
-    while (registers[i]){
-        if(strcmp(operand,registers[i])==0){
+int isRegister(char *operand, int linerNumber) {
+    int i = 0;
+    while (registers[i]) {
+        if (strcmp(operand, registers[i]) == 0) {
             return i;
         }
         i++;
     }
     return -1;
 }
-int isValueNumber(char *operand){
+
+int isValueNumber(char *operand) {
     char *sighNumber;
-    sighNumber=strchr(operand,'#');
+    sighNumber = strchr(operand, '#');
 
-    if(sighNumber!=NULL){
+    if (sighNumber != NULL) {
         sighNumber++;
-        if(strchr(sighNumber,'+')!=NULL || strchr(sighNumber,'-')!=NULL) {
+        if (strchr(sighNumber, '+') != NULL || strchr(sighNumber, '-') != NULL) {
             sighNumber++;
             if (isNumber(sighNumber)) {
                 return 1;
             }
-        }else{
+        } else {
             if (isNumber(sighNumber)) {
                 return 1;
             }
@@ -156,66 +158,68 @@ int isValueNumber(char *operand){
     return 0;
 }
 
-int validateOperand(char *operand,int lineNumber,int *addressType){
+int validateOperand(char *operand, int lineNumber, int *addressType) {
 
-    if(!isRegister(operand,lineNumber)){
-        *addressType=REG_ADDRESSING;
-        return 1 ;
+    if (isRegister(operand, lineNumber)) {
+        *addressType = REG_ADDRESSING;
+        return 1;
     }
-    if(!isAlphaNumeric(operand)){
-        *addressType=DIRECT_ADDRESSING;
-        return 0;
+    if (isAlphaNumeric(operand)) {
+        *addressType = DIRECT_ADDRESSING;
+        return 1;
     }
-    if(!isValueNumber(operand)){
-        *addressType=IMMEDIATE_ADDRESSING;
+    if (isValueNumber(operand)) {
+        *addressType = IMMEDIATE_ADDRESSING;
         return 1;
     }
     return 0;
 }
 
 
-void parseTwoOperands(char *operands,char **firstOperand,char **secondOperand)
-{
-    char *separator,*firstOp=NULL,*originalStr=operands;
-    int counter=0;
+void parseTwoOperands(char *operands, char **firstOperand, char **secondOperand) {
+    char *separator, *firstOp = NULL, *originalStr = operands;
+    int counter = 0;
 
     skipWhitesSpaces(operands);
-    separator=strchr(operands,',');
+    separator = strchr(operands, ',');
 
-    if(separator!=NULL){
+    if (separator != NULL) {
 
-        while (*operands!=','){
+        while (*operands != ',') {
             operands++;
             counter++;
         }
-        *firstOperand=(char*)malloc(counter*sizeof(char));
-        if(*firstOperand!=NULL) {
+        *firstOperand = (char *) malloc(counter * sizeof(char));
+        if (*firstOperand != NULL) {
             strncpy(*firstOperand, originalStr, counter);
             *secondOperand = (separator + 1);
         }
     }
 
 }
-void parseOneOperand(char *operands,char **oneOperand){
-    int counter=0;
-    char *orgOperand=operands;
-    while (*operands!='\0'){
+
+void parseOneOperand(char *operands, char **oneOperand) {
+    int counter = 0;
+    char *orgOperand = operands;
+    while (*operands != '\0') {
         operands++;
         counter++;
     }
-    *oneOperand=(char *)malloc(sizeof(char)*counter);
-    if(orgOperand!=NULL){
-        strncpy(*oneOperand,orgOperand,counter);
+    *oneOperand = (char *) malloc(sizeof(char) * counter);
+    if (orgOperand != NULL) {
+        strncpy(*oneOperand, orgOperand, counter);
     }
 
 }
-int isJmpCommand(char *command){
-    return strcmp(command,"jmp");
+
+int isJmpCommand(char *command) {
+    return strcmp(command, "jmp");
 }
-int parseCommand(char *line, char **command,int lineNumber,int *addressingType) {
+
+int parseCommand(char *line, char **command, int lineNumber, int *addressingType, int *IC, int *DC) {
     int i = 0;
-    int counter = 0,len=0;
-    char *command_operands = NULL, *parserCommand, *originalCommandLine,*operands, *firstOp = NULL,*secondOp=NULL;
+    int counter = 0, len = 0;
+    char *command_operands = NULL, *parserCommand, *originalCommandLine, *operands, *firstOp = NULL, *secondOp = NULL;
     int numOfOperand;
     /*Skip label if exists and skip white or tab spaces*/
     if (*line != ' ') {
@@ -226,35 +230,35 @@ int parseCommand(char *line, char **command,int lineNumber,int *addressingType) 
     }
     originalCommandLine = command_operands;
 
-    while (*command_operands != ' ' && *command_operands!='\r') {
+    while (*command_operands != ' ' && *command_operands != '\r') {
         command_operands++;
         counter++;
     }
     /* if no spaces between command and operands, return 0 for throw exception */
     if (counter == 0) {
-        printf("[ERROR] - No spaces between command and operands, line %d",lineNumber);
+        printf("[ERROR] - No spaces between command and operands, line %d", lineNumber);
         return 0;
     }
 
-    parserCommand = (char*)malloc(counter*sizeof(char));
+    parserCommand = (char *) malloc(counter * sizeof(char));
     strncpy(parserCommand, originalCommandLine, counter);
     *command = parserCommand;
 
-    if(strchr(*command,'.')!=NULL) return 0;
+    if (strchr(*command, '.') != NULL) return 0;
 
-    if (!isCommandExists(*command,&numOfOperand)) {
-        printf("[ERROR] - Not found %s command,line %d  ",*command,lineNumber);
+    if (!isCommandExists(*command, &numOfOperand)) {
+        printf("[ERROR] - Not found %s command,line %d  ", *command, lineNumber);
         free(parserCommand);
         return 0;
-    }else{
-        if(numOfOperand>=1) {
+    } else {
+        if (numOfOperand >= 1) {
             counter = 0;
             operands = (char *) malloc(sizeof(char) * (strlen(command_operands) - counter));
             while (*command_operands != '\r') {
                 command_operands++;
                 operands[counter++] = *command_operands;
             }
-            operands[counter-1] = '\0';
+            operands[counter - 1] = '\0';
 
         }
         switch (numOfOperand) {
@@ -263,27 +267,33 @@ int parseCommand(char *line, char **command,int lineNumber,int *addressingType) 
                 break;
             case 1:
                 // get operand after a command
-                if(!isJmpCommand(*command)){
-                    *addressingType=RELATIVE_ADDRESSING;
-                }else{
-                    parseOneOperand(operands,&firstOp);
-                    if(firstOp!=NULL) {
+                if (!isJmpCommand(*command)) {
+                    *addressingType = RELATIVE_ADDRESSING;
+                } else {
+                    parseOneOperand(operands, &firstOp);
+                    if (firstOp != NULL) {
                         if (validateOperand(firstOp, lineNumber, addressingType)) {
-                                printf("Command %s  Operand %s Address Type %d",*command,firstOp,*addressingType);
+                            printf("Command %s  Operand %s Address Type %d", *command, firstOp, *addressingType);
                         }
-                    }else{
-                        printf("Command %s must have %d operands \n",*command,numOfOperand);
+                    } else {
+                        printf("Command %s must have %d operands \n", *command, numOfOperand);
                     }
                     free(operands);
                 }
 
                 break;
             case 2:
-                parseTwoOperands(operands,&firstOp,&secondOp);
-                if(firstOp!=NULL && secondOp!=NULL){
-                    printf("Command %s Operand [%s,%s]  Address Type %d",*command,firstOp,secondOp,*addressingType);
-                }else{
-                    printf("Command %s must have %d operands \n",*command,numOfOperand);
+                parseTwoOperands(operands, &firstOp, &secondOp);
+                if (firstOp != NULL && secondOp != NULL) {
+                    if (validateOperand(firstOp, lineNumber, addressingType)) {
+                        printf("Operand %s, Address Type %d", firstOp, *addressingType);
+                    }
+                    if (validateOperand(secondOp, lineNumber, addressingType)) {
+                        printf("Operand %s, Address Type %d", secondOp, *addressingType);
+                    }
+
+                } else {
+                    printf("Command %s must have %d operands \n", *command, numOfOperand);
                 }
                 free(operands);
                 break;
@@ -295,8 +305,39 @@ int parseCommand(char *line, char **command,int lineNumber,int *addressingType) 
     return 1;
 }
 
-int parseDirective(char *line, char **data,int lineNumber) {
-    char DATA[] = ".data", STRING[] = ".string", EXTERN[] = ".extern", ENTRY[] = ".entry";
+int isExternEntryDirective(char *line, char **labelOperand) {
+    char EXTERN[] = ".extern", ENTRY[] = ".entry", *originalLine;
+    int counter = 0, startOperandIndex = 0, i = 0;
+
+
+    if (strchr(line, '.')) {
+        line++;
+        while (*line != ' ') {
+            if (*line == EXTERN[i++]) {
+                counter++;
+            }
+        }
+        if (strlen(EXTERN) - 1 == counter) {
+            line++;
+            startOperandIndex = counter + 1;
+            counter = 0;
+            while (*line != '\r') {
+                line++;
+                counter++;
+            }
+            *labelOperand = (char *) malloc(sizeof(char) * counter);
+            if (labelOperand != NULL) {
+                strncpy(*labelOperand,originalLine,counter);
+            }
+            return 1;
+        }
+        return strlen(ENTRY) - 1 == counter;
+    }
+    return 0;
+}
+
+int parseDirective(char *line, char **data, int lineNumber) {
+    char DATA[] = ".data", STRING[] = ".string";
 
     int i = 0, directiveSeparatorIndex = 0;
     char *directiveStatement = NULL;
@@ -313,14 +354,14 @@ int parseDirective(char *line, char **data,int lineNumber) {
                 }
             }
             if (directiveSeparatorIndex == 0) {
-                printf("[ERROR] - No spaces found between directive and data ,line %d  ",lineNumber);
+                printf("[ERROR] - No spaces found between directive and data ,line %d  ", lineNumber);
                 return 0;
             } else {
                 *data = malloc(sizeof(char) * directiveSeparatorIndex);
                 strncpy(*data, directiveStatement, directiveSeparatorIndex);
             }
         } else {
-            printf("[ERROR] - Not found %s directive ,line %d  ",*data,lineNumber);
+            printf("[ERROR] - Not found %s directive ,line %d  ", *data, lineNumber);
             return 0;
         }
         // check if a directive is .data/.string/.extern/.entry
@@ -328,7 +369,7 @@ int parseDirective(char *line, char **data,int lineNumber) {
             strcmp(*data, ENTRY) == 0 || strcmp(*data, EXTERN) == 0) {
             return 1;
         } else {
-            printf("[ERROR] - Not found %s directive ,line %d  ",*data,lineNumber);
+            printf("[ERROR] - Not found %s directive ,line %d  ", *data, lineNumber);
             free(data);
             return 0;
         }

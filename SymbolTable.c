@@ -8,23 +8,26 @@
 
 SymbolTable *table;
 int tableSize;
-void allocateTable(){
+SymbolTable *allocateTable(){
     SymbolTable *resizeTable;
     if(table==NULL){
         table=(SymbolTable*) malloc(sizeof(SymbolTable) * DEFAULT_SYMBOL_TABLE_SIZE);
         if(table!=NULL){
             printf("Symbol Table Allocated Successfully\n");
+            return table;
         }else{
             printf("Fail on Symbol Table allocation\n");
-            return;
+            return NULL;
         }
     }else{
         resizeTable=realloc(table,tableSize);
         if(resizeTable!=NULL){
             table=resizeTable;
             printf("Symbol Table reallocated with size %d\n",tableSize);
+            return table;
         }else{
             printf("Fail on Symbol Table reallocation\n");
+            return NULL;
         }
     }
 
