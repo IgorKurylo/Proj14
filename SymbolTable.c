@@ -53,9 +53,9 @@ int checkIfSymbolExists(char *symbolName){
     for(i=0;i<tableSize;i++){
         if(strcmp(symbolName,table[i].name)==0){
             printf("Symbol %s is exists \n",symbolName);
-            return 0;
+            return 1;
         }
     }
-    return 1;
+    return 0;
 }
 

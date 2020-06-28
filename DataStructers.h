@@ -17,7 +17,11 @@ typedef struct
 
 }HashMap;
 
+extern int *dataSnapShotMemory;
+extern int dataSize;
 
+int *allocationDataSnapShotMemory();
+int *addDataToSnapShotMemory(char *data,int directiveType,int *DC);
 
 //typedef struct {
 //    unsigned int era:3;

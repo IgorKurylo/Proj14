@@ -10,16 +10,16 @@
 
 
 
-void firstRead(AsmFileContent asmContentFile,int *IC,int *lengthOfWords,int *DC,int lineNumber){
-    char *labelName,*command,*directive;
-    int addressType=-1;
+void firstRead(AsmFileContent asmContentFile,int *IC,int *DC,int lineNumber){
+    char *labelName,*command,*directiveData;
+    int addressType=-1,directiveType=0;
     int numberOfLine=lineNumber+1;
     SymbolTable  row={};
     if(allocateTable()!=NULL) {
         if (isComment(asmContentFile.line) || isEmptyLine(asmContentFile.line)) {
             return;
         }
-        if(isExternEntryDirective(asmContentFile.line),&labelName){
+        if(isExternEntryDirective(asmContentFile.line,&labelName)){
             row.name=labelName;
             row.address=0;
             row.is_extern=1;
@@ -32,20 +32,19 @@ void firstRead(AsmFileContent asmContentFile,int *IC,int *lengthOfWords,int *DC,
             if(!checkIfSymbolExists(labelName)){
                 row.name=labelName;
             }
-            if (parseCommand(asmContentFile.line, &command, lineNumber, &addressType, IC, DC)) {
+            if (parseCommand(asmContentFile.line, &command, lineNumber, IC)) {
                 printf("[Line %d ] Command - > %s\n", numberOfLine, command);
                 row.type=code;
-                row.address=*IC;
-                //TODO: calculate length of words, watch video
+                row.address=*IC; // ic come already calculation. ;
             }
             printf("[Line %d]  Label : %s \n", numberOfLine, labelName);
             addSymbol(row,lineNumber);
+            if (parseDirective(asmContentFile.line, &directiveData, lineNumber,&directiveType)) {
+                populateDataDirective(DC,directiveType,directiveData);
+            }
         }
-
-        if (parseDirective(asmContentFile.line, &directive, lineNumber)) {
-            printf("[Line %d ] Directive - > %s\n", numberOfLine, directive);
+        else if (parseCommand(asmContentFile.line, &command, lineNumber, IC)) {
         }
-
 
     }
     //TDB Check commands,data,string,extern,entry.

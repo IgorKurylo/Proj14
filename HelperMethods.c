@@ -101,12 +101,12 @@ char *parseLabel(char *line, char **labelName, int lineNumber) {
             printf("Allocation fail\n");
             return NULL;
         }
+        strncpy(label, originalLine, count);
+        *labelName = label;
         if (!isAlphaNumeric(label)) {
             printf("[Error] - Syntax error, label must be Alpha Numeric, line %d", lineNumber);
             return NULL;
         }
-        strncpy(label, originalLine, count);
-        *labelName = label;
         return label;
     } else {
         printf("[Error] - Syntax error, label must be defined with ':' in the end, line %d", lineNumber);
@@ -127,7 +127,7 @@ int isCommandExists(char *command, int *numOfOperands) {
     return -1;
 }
 
-int isRegister(char *operand, int linerNumber) {
+int isRegister(char *operand) {
     int i = 0;
     while (registers[i]) {
         if (strcmp(operand, registers[i]) == 0) {
@@ -158,9 +158,9 @@ int isValueNumber(char *operand) {
     return 0;
 }
 
-int validateOperand(char *operand, int lineNumber, int *addressType) {
+int validateOperand(char *operand, int *addressType) {
 
-    if (isRegister(operand, lineNumber)) {
+    if (isRegister(operand)) {
         *addressType = REG_ADDRESSING;
         return 1;
     }
@@ -212,15 +212,32 @@ void parseOneOperand(char *operands, char **oneOperand) {
 
 }
 
+void calculateICAddress(int addressType, int *IC) {
+    switch (addressType) {
+
+        case IMMEDIATE_ADDRESSING:
+        case DIRECT_ADDRESSING:
+        case RELATIVE_ADDRESSING:
+            *IC = *IC + 2;
+            break;
+        case REG_ADDRESSING:
+            *IC = *IC + 1;
+            break;
+        default:
+            break;
+
+    }
+}
+
+
 int isJmpCommand(char *command) {
     return strcmp(command, "jmp");
 }
 
-int parseCommand(char *line, char **command, int lineNumber, int *addressingType, int *IC, int *DC) {
-    int i = 0;
-    int counter = 0, len = 0;
+int parseCommand(char *line, char **command, int lineNumber, int *IC) {
+    int i = 0, counter = 0, len = 0, numOfOperand = 0, addressingType;
     char *command_operands = NULL, *parserCommand, *originalCommandLine, *operands, *firstOp = NULL, *secondOp = NULL;
-    int numOfOperand;
+
     /*Skip label if exists and skip white or tab spaces*/
     if (*line != ' ') {
         command_operands = skipLabel(line);
@@ -268,12 +285,13 @@ int parseCommand(char *line, char **command, int lineNumber, int *addressingType
             case 1:
                 // get operand after a command
                 if (!isJmpCommand(*command)) {
-                    *addressingType = RELATIVE_ADDRESSING;
+                    addressingType = RELATIVE_ADDRESSING;
+                    calculateICAddress(addressingType, IC);
                 } else {
                     parseOneOperand(operands, &firstOp);
                     if (firstOp != NULL) {
-                        if (validateOperand(firstOp, lineNumber, addressingType)) {
-                            printf("Command %s  Operand %s Address Type %d", *command, firstOp, *addressingType);
+                        if (validateOperand(firstOp, &addressingType)) {
+                            printf("Command %s  Operand %s Address Type %d", *command, firstOp, addressingType);
                         }
                     } else {
                         printf("Command %s must have %d operands \n", *command, numOfOperand);
@@ -285,13 +303,14 @@ int parseCommand(char *line, char **command, int lineNumber, int *addressingType
             case 2:
                 parseTwoOperands(operands, &firstOp, &secondOp);
                 if (firstOp != NULL && secondOp != NULL) {
-                    if (validateOperand(firstOp, lineNumber, addressingType)) {
-                        printf("Operand %s, Address Type %d", firstOp, *addressingType);
+                    if (validateOperand(firstOp, &addressingType)) {
+                        printf("Operand %s, Address Type %d", firstOp, addressingType);
+                        calculateICAddress(addressingType, IC);
                     }
-                    if (validateOperand(secondOp, lineNumber, addressingType)) {
-                        printf("Operand %s, Address Type %d", secondOp, *addressingType);
+                    if (validateOperand(secondOp, &addressingType)) {
+                        printf("Operand %s, Address Type %d", secondOp, addressingType);
+                        calculateICAddress(addressingType, IC);
                     }
-
                 } else {
                     printf("Command %s must have %d operands \n", *command, numOfOperand);
                 }
@@ -300,9 +319,12 @@ int parseCommand(char *line, char **command, int lineNumber, int *addressingType
             default:
                 break;
         }
-        //TODO: TBD set addressing type
     }
     return 1;
+}
+
+int validateCommandAddressType(char *command, char *operand, int operandDirection) {
+
 }
 
 int isExternEntryDirective(char *line, char **labelOperand) {
@@ -327,7 +349,7 @@ int isExternEntryDirective(char *line, char **labelOperand) {
             }
             *labelOperand = (char *) malloc(sizeof(char) * counter);
             if (labelOperand != NULL) {
-                strncpy(*labelOperand,originalLine,counter);
+                strncpy(*labelOperand, originalLine, counter);
             }
             return 1;
         }
@@ -335,11 +357,24 @@ int isExternEntryDirective(char *line, char **labelOperand) {
     }
     return 0;
 }
+void populateDataDirective(int DC, int directiveType, char *directiveDefinedData) {
+    int *snapShotMemory;
+    if(allocationDataSnapShotMemory()!=NULL){
+        snapShotMemory=addDataToSnapShotMemory(directiveDefinedData,directiveType,&DC);
+        if(snapShotMemory!=NULL){
+            printf("Data Added Succesfully -  DC = %d",DC);
+        }else{
+            printf("[ERROR] - Can't allocate data snap shot memory ");
+        }
+    }else{
+        printf("[ERROR] - Can't allocate data snap shot memory ");
+    }
 
-int parseDirective(char *line, char **data, int lineNumber) {
-    char DATA[] = ".data", STRING[] = ".string";
+}
+int parseDirective(char *line, char **data, int lineNumber, int *directiveType) {
+    char DATA[] = ".data", STRING[] = ".string", *directive;
 
-    int i = 0, directiveSeparatorIndex = 0;
+    int i = 0, directiveSeparatorIndex = 0, dataCounter = 0;
     char *directiveStatement = NULL;
     /*Skip label if exists and skip white or tab spaces*/
     if (*line != ' ') {
@@ -357,16 +392,23 @@ int parseDirective(char *line, char **data, int lineNumber) {
                 printf("[ERROR] - No spaces found between directive and data ,line %d  ", lineNumber);
                 return 0;
             } else {
-                *data = malloc(sizeof(char) * directiveSeparatorIndex);
-                strncpy(*data, directiveStatement, directiveSeparatorIndex);
+                directive = malloc(sizeof(char) * directiveSeparatorIndex);
+                strncpy(directive, directiveStatement, directiveSeparatorIndex);
             }
         } else {
             printf("[ERROR] - Not found %s directive ,line %d  ", *data, lineNumber);
             return 0;
         }
-        // check if a directive is .data/.string/.extern/.entry
-        if (strcmp(*data, DATA) == 0 || strcmp(*data, STRING) == 0 ||
-            strcmp(*data, ENTRY) == 0 || strcmp(*data, EXTERN) == 0) {
+        // check if a directive is .data/.string/
+        *directiveType = strcmp(directive, DATA) == 0 ? DATA_DIRECTIVE : STRING_DIRECTIVE;
+        if (*directiveType == DATA_DIRECTIVE || *directiveType == STRING_DIRECTIVE) {
+            line += directiveSeparatorIndex;
+            while (*line != '\r') {
+                line++;
+                dataCounter++;
+            }
+            *data = malloc(sizeof(char) * dataCounter);
+            strncpy(*data, directiveStatement, dataCounter);
             return 1;
         } else {
             printf("[ERROR] - Not found %s directive ,line %d  ", *data, lineNumber);
@@ -378,6 +420,8 @@ int parseDirective(char *line, char **data, int lineNumber) {
     }
 
 }
+
+
 
 
 
