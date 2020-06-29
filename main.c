@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "FileMethods.h"
 #include "FirstAsm.h"
-
+#include "SymbolTable.h"
 
 int main(int argc, char *argv[]) {
 
@@ -27,8 +27,10 @@ int main(int argc, char *argv[]) {
             file = readFile(argv[i]);
             if (file != NULL) {
                 asmContentFile = fileContent(file, &fileLines);
-                for (index = 0; index < fileLines; index++) {
-                    firstRead(asmContentFile[index], &IC, &DC, index);
+                if(allocateTable()!=NULL) {
+                    for (index = 0; index < fileLines; index++) {
+                        firstRead(asmContentFile[index], &IC, &DC, index);
+                    }
                 }
             }
         }

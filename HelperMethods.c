@@ -236,7 +236,7 @@ int isJmpCommand(char *command) {
 
 int parseCommand(char *line, char **command, int lineNumber, int *IC) {
     int i = 0, counter = 0, len = 0, numOfOperand = 0, addressingType;
-    char *command_operands = NULL, *parserCommand, *originalCommandLine, *operands, *firstOp = NULL, *secondOp = NULL;
+    char *command_operands = NULL, *parserCommand=NULL, *originalCommandLine=NULL, *operands=NULL, *firstOp = NULL, *secondOp = NULL;
 
     /*Skip label if exists and skip white or tab spaces*/
     if (*line != ' ') {
@@ -257,8 +257,9 @@ int parseCommand(char *line, char **command, int lineNumber, int *IC) {
         return 0;
     }
 
-    parserCommand = (char *) malloc(counter * sizeof(char));
+    parserCommand = (char *) malloc(  sizeof(char)*(counter+1));
     strncpy(parserCommand, originalCommandLine, counter);
+    parserCommand[counter]=0;
     *command = parserCommand;
 
     if (strchr(*command, '.') != NULL) return 0;
@@ -396,7 +397,7 @@ int parseDirective(char *line, char **data, int lineNumber, int *directiveType) 
                 strncpy(directive, directiveStatement, directiveSeparatorIndex);
             }
         } else {
-            printf("[ERROR] - Not found %s directive ,line %d  ", *data, lineNumber);
+            //printf("[ERROR] - Not found %s directive ,line %d  ", *data, lineNumber);
             return 0;
         }
         // check if a directive is .data/.string/

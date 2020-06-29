@@ -34,11 +34,11 @@ SymbolTable *allocateTable(){
 }
 int addSymbol(SymbolTable row,int currentIndex){
 
-    if(checkIfSymbolExists(row.name)) {
+    if(!checkIfSymbolExists(row.name)) {
         tableSize++;
         table = (SymbolTable *) realloc(table, sizeof(SymbolTable) * tableSize);
         if (table != NULL) {
-            table[currentIndex + 1] = row;
+            table[tableSize-1] = row;
             return 1;
         } else {
             return 0;

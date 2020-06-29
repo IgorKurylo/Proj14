@@ -9,44 +9,47 @@
 #include <stdlib.h>
 
 
+void firstRead(AsmFileContent asmContentFile, int *IC, int *DC, int lineNumber) {
+    char *labelName, *command, *directiveData;
+    int addressType = -1, directiveType = 0;
+    int numberOfLine = lineNumber + 1;
+    int flagData=0;
+    SymbolTable row = {};
 
-void firstRead(AsmFileContent asmContentFile,int *IC,int *DC,int lineNumber){
-    char *labelName,*command,*directiveData;
-    int addressType=-1,directiveType=0;
-    int numberOfLine=lineNumber+1;
-    SymbolTable  row={};
-    if(allocateTable()!=NULL) {
-        if (isComment(asmContentFile.line) || isEmptyLine(asmContentFile.line)) {
-            return;
+    if (isComment(asmContentFile.line) || isEmptyLine(asmContentFile.line)) {
+        return;
+    }
+    if (isExternEntryDirective(asmContentFile.line, &labelName)) {
+        row.name = labelName;
+        row.address = 0;
+        row.is_extern = 1;
+        if (addSymbol(row, lineNumber)) {
+            printf("[Line %d] .extern with operand %s added to table", lineNumber, labelName);
         }
-        if(isExternEntryDirective(asmContentFile.line,&labelName)){
-            row.name=labelName;
-            row.address=0;
-            row.is_extern=1;
-            if(addSymbol(row,lineNumber)){
-                printf("[Line %d] .extern with operand %s added to table",lineNumber,labelName);
-            }
-
+    }
+    if (parseLabel(asmContentFile.line, &labelName, numberOfLine)) {
+        // add a label
+        row.name = labelName;
+        row.address = *IC;
+        if (parseCommand(asmContentFile.line, &command, lineNumber, IC)) {
+            printf("[Line %d] Command: %s \n", numberOfLine, command);
+            row.type = code;
+            // ic come already calculation;
         }
-        if (parseLabel(asmContentFile.line, &labelName, numberOfLine)) {
-            if(!checkIfSymbolExists(labelName)){
-                row.name=labelName;
-            }
-            if (parseCommand(asmContentFile.line, &command, lineNumber, IC)) {
-                printf("[Line %d ] Command - > %s\n", numberOfLine, command);
-                row.type=code;
-                row.address=*IC; // ic come already calculation. ;
-            }
-            printf("[Line %d]  Label : %s \n", numberOfLine, labelName);
-            addSymbol(row,lineNumber);
-            if (parseDirective(asmContentFile.line, &directiveData, lineNumber,&directiveType)) {
-                populateDataDirective(DC,directiveType,directiveData);
-            }
+        printf("[Line %d] Label: %s \n", numberOfLine, labelName);
+        if(!addSymbol(row, lineNumber)){
+            printf("[Line %d] label %s exists in symbol table \n",numberOfLine,labelName);
         }
-        else if (parseCommand(asmContentFile.line, &command, lineNumber, IC)) {
+        if (parseDirective(asmContentFile.line, &directiveData, lineNumber, &directiveType)) {
+            populateDataDirective(DC, directiveType, directiveData);
+            flagData=1;
         }
+    } else if (parseCommand(asmContentFile.line, &command, lineNumber, IC)) {
+        //DEBUG IC calculation
+        printf("[Line %d] Command: %s \n", numberOfLine, command);
 
     }
+
     //TDB Check commands,data,string,extern,entry.
 
 }
