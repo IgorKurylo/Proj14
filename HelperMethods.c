@@ -96,12 +96,13 @@ char *parseLabel(char *line, char **labelName, int lineNumber) {
             printf("[Error] - Label too large only %d characters, line %d", MAX_SYMBOL_SIZE, lineNumber);
             return NULL;
         }
-        label = malloc(sizeof(char) * count);
+        label = malloc(sizeof(char) * (count+1));
         if (!label) {
             printf("Allocation fail\n");
             return NULL;
         }
         strncpy(label, originalLine, count);
+        label[count]=0;
         *labelName = label;
         if (!isAlphaNumeric(label)) {
             printf("[Error] - Syntax error, label must be Alpha Numeric, line %d", lineNumber);
@@ -160,7 +161,7 @@ int isValueNumber(char *operand) {
 
 int validateOperand(char *operand, int *addressType) {
 
-    if (isRegister(operand)) {
+    if (isRegister(operand) != -1) {
         *addressType = REG_ADDRESSING;
         return 1;
     }
@@ -236,7 +237,7 @@ int isJmpCommand(char *command) {
 
 int parseCommand(char *line, char **command, int lineNumber, int *IC) {
     int i = 0, counter = 0, len = 0, numOfOperand = 0, addressingType;
-    char *command_operands = NULL, *parserCommand=NULL, *originalCommandLine=NULL, *operands=NULL, *firstOp = NULL, *secondOp = NULL;
+    char *command_operands = NULL, *parserCommand = NULL, *originalCommandLine = NULL, *operands = NULL, *firstOp = NULL, *secondOp = NULL;
 
     /*Skip label if exists and skip white or tab spaces*/
     if (*line != ' ') {
@@ -257,9 +258,9 @@ int parseCommand(char *line, char **command, int lineNumber, int *IC) {
         return 0;
     }
 
-    parserCommand = (char *) malloc(  sizeof(char)*(counter+1));
+    parserCommand = (char *) malloc(sizeof(char) * (counter + 1));
     strncpy(parserCommand, originalCommandLine, counter);
-    parserCommand[counter]=0;
+    parserCommand[counter] = 0;
     *command = parserCommand;
 
     if (strchr(*command, '.') != NULL) return 0;
@@ -328,52 +329,47 @@ int validateCommandAddressType(char *command, char *operand, int operandDirectio
 
 }
 
-int isExternEntryDirective(char *line, char **labelOperand) {
-    char EXTERN[] = ".extern", ENTRY[] = ".entry", *originalLine;
+int isExternDirective(char *line) {
+    char EXTERN[] = ".extern", *originalLine,*directiveStatement,*finalDirective;
     int counter = 0, startOperandIndex = 0, i = 0;
+    if (*line != ' ') {
+        directiveStatement = skipLabel(line);
+        directiveStatement = skipWhitesSpaces(directiveStatement);
+        originalLine=directiveStatement;
+        if (strchr(directiveStatement, '.')) {
+            while (*directiveStatement != ' ') {
+                    counter++;
+                    directiveStatement++;
+            }
 
+            finalDirective=(char*)malloc(sizeof(char)*counter);
+            strncpy(finalDirective,originalLine,counter);
+            finalDirective[counter]=0;
 
-    if (strchr(line, '.')) {
-        line++;
-        while (*line != ' ') {
-            if (*line == EXTERN[i++]) {
-                counter++;
-            }
+            return !strcmp(finalDirective,EXTERN);
         }
-        if (strlen(EXTERN) - 1 == counter) {
-            line++;
-            startOperandIndex = counter + 1;
-            counter = 0;
-            while (*line != '\r') {
-                line++;
-                counter++;
-            }
-            *labelOperand = (char *) malloc(sizeof(char) * counter);
-            if (labelOperand != NULL) {
-                strncpy(*labelOperand, originalLine, counter);
-            }
-            return 1;
-        }
-        return strlen(ENTRY) - 1 == counter;
     }
     return 0;
 }
-void populateDataDirective(int DC, int directiveType, char *directiveDefinedData) {
+
+void populateDataDirective(int *DC,int *IC, int directiveType, char *directiveDefinedData) {
     int *snapShotMemory;
-    if(allocationDataSnapShotMemory()!=NULL){
-        snapShotMemory=addDataToSnapShotMemory(directiveDefinedData,directiveType,&DC);
-        if(snapShotMemory!=NULL){
-            printf("Data Added Succesfully -  DC = %d",DC);
-        }else{
+    if (allocationDataSnapShotMemory() != NULL) {
+        snapShotMemory = addDataToSnapShotMemory(directiveDefinedData, directiveType, *DC);
+        *IC=*IC+*DC;
+        if (snapShotMemory != NULL) {
+            printf("Data Added Succesfully -  DC = %d", *DC);
+        } else {
             printf("[ERROR] - Can't allocate data snap shot memory ");
         }
-    }else{
+    } else {
         printf("[ERROR] - Can't allocate data snap shot memory ");
     }
 
 }
+
 int parseDirective(char *line, char **data, int lineNumber, int *directiveType) {
-    char DATA[] = ".data", STRING[] = ".string", *directive;
+    char DATA[] = ".data", STRING[] = ".string", *directive,*dataFixer,*copiedData;
 
     int i = 0, directiveSeparatorIndex = 0, dataCounter = 0;
     char *directiveStatement = NULL;
@@ -403,13 +399,16 @@ int parseDirective(char *line, char **data, int lineNumber, int *directiveType) 
         // check if a directive is .data/.string/
         *directiveType = strcmp(directive, DATA) == 0 ? DATA_DIRECTIVE : STRING_DIRECTIVE;
         if (*directiveType == DATA_DIRECTIVE || *directiveType == STRING_DIRECTIVE) {
-            line += directiveSeparatorIndex;
-            while (*line != '\r') {
-                line++;
+            directiveStatement += directiveSeparatorIndex;
+            directive=directiveStatement;
+            while (*directiveStatement != '\r') {
+                directiveStatement++;
                 dataCounter++;
             }
-            *data = malloc(sizeof(char) * dataCounter);
-            strncpy(*data, directiveStatement, dataCounter);
+            copiedData = malloc(sizeof(char) * (dataCounter+1));
+            strncpy(copiedData, directive, dataCounter);
+            copiedData[dataCounter]=0;
+            *data=skipWhitesSpaces(copiedData);
             return 1;
         } else {
             printf("[ERROR] - Not found %s directive ,line %d  ", *data, lineNumber);

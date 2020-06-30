@@ -14,7 +14,7 @@ int *allocationDataSnapShotMemory(){
     }
     return NULL;
 }
-int *addDataToSnapShotMemory(char *data,int directiveType,int DC){
+int *addDataToSnapShotMemory(char *data,int directiveType,int *DC){
 
     char *dataToken;
     int i=1;
@@ -22,15 +22,17 @@ int *addDataToSnapShotMemory(char *data,int directiveType,int DC){
         case DATA_DIRECTIVE:
             dataToken=strtok(data, separator);
             while (dataToken!=NULL){
-                dataSnapShotMemory[DC++]=atoi(dataToken);
+                dataSnapShotMemory[*DC++]=atoi(dataToken);
                 dataToken=strtok(data, separator);
-                dataSnapShotMemory=realloc(dataSnapShotMemory,DC);
+                dataSnapShotMemory=(int*)realloc(dataSnapShotMemory,*DC);
             }
             break;
         case STRING_DIRECTIVE:
             while(i<strlen(data)-1){
-                dataSnapShotMemory[DC++]=(int)data[i];
-                dataSnapShotMemory=realloc(dataSnapShotMemory,DC);
+                if(data[i]!='"' || data[i]!=' ') {
+                    dataSnapShotMemory[*DC++] = (int) data[i];
+                    dataSnapShotMemory = (int *) realloc(dataSnapShotMemory, *DC);
+                }
             }
             break;
         default:

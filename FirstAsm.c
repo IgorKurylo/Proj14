@@ -19,8 +19,8 @@ void firstRead(AsmFileContent asmContentFile, int *IC, int *DC, int lineNumber) 
     if (isComment(asmContentFile.line) || isEmptyLine(asmContentFile.line)) {
         return;
     }
-    if (isExternEntryDirective(asmContentFile.line, &labelName)) {
-        row.name = labelName;
+    if (isExternDirective(asmContentFile.line)) {
+        row.name = parseLabel(asmContentFile.line,&labelName,numberOfLine);
         row.address = 0;
         row.is_extern = 1;
         if (addSymbol(row, lineNumber)) {
@@ -41,7 +41,7 @@ void firstRead(AsmFileContent asmContentFile, int *IC, int *DC, int lineNumber) 
             printf("[Line %d] label %s exists in symbol table \n",numberOfLine,labelName);
         }
         if (parseDirective(asmContentFile.line, &directiveData, lineNumber, &directiveType)) {
-            populateDataDirective(DC, directiveType, directiveData);
+            populateDataDirective(DC,IC,directiveType, directiveData);
             flagData=1;
         }
     } else if (parseCommand(asmContentFile.line, &command, lineNumber, IC)) {

@@ -22,7 +22,7 @@ void convertToBase16(int number);
 void convertToBase2(int number);
 int validateOperand(char *operand, int *addressType);
 int isValueNumber(char *operand);
-int isExternEntryDirective(char *line,char **labelOperand);
+int isExternDirective(char *line);
 void calculateICAddress(int addressType,int *IC);
-void populateDataDirective(int *DC, int directiveType, char *directiveDefinedData);
+void populateDataDirective(int *DC,int *IC, int directiveType, char *directiveDefinedData);
 #endif //PROJECTMAMAN14_HELPERSMETHODS_H
