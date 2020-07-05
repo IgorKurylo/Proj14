@@ -6,6 +6,7 @@
 #define NO_ERROR "NO ERROR"
 #define MAX_LINE_SIZE 80
 #define MAX_LINES_FILE 100
+#define INIT_ADDRESS 100
 #define MAX_SYMBOL_SIZE 31
 #define ERROR "ERROR"
 #define TRUE 1

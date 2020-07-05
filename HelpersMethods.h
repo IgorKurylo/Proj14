@@ -13,9 +13,11 @@ int parseDirective(char *line,char **data,int lineNumber,int *directiveType);
 char *parseLabel(char *line,char **labelName,int lineNumber);
 int isAlphaNumeric(const char *str);
 int isNumber(const char *str);
-int IsVirtualInstruction(char *line,unsigned char* type);
-int operandValidation(char *line,int *num);
-void trimWhiteSpaces(char *line,int size);
+
+int operandValidation(char *line,int *num,HashMap command);
+int addressingValidation(char *line,int addressingType,HashMap command);
+
+int isJumpToLabelSymbol(const char *str);
 void skipWhitesSpaces(char *line);
 char *skipLabel(char *line);
 void convertToBase16(int number);
@@ -24,5 +26,5 @@ int validateOperand(char *operand, int *addressType);
 int isValueNumber(char *operand);
 int isExternDirective(char *line);
 void calculateICAddress(int addressType,int *IC);
-void populateDataDirective(int *DC,int *IC, int directiveType, char *directiveDefinedData);
+void populateDataDirective(int *DC, int directiveType, char *directiveDefinedData);
 #endif //PROJECTMAMAN14_HELPERSMETHODS_H

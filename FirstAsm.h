@@ -6,6 +6,6 @@
 #define PROJECTMAMAN14_FIRSTASM_H
 
 
-void firstRead(AsmFileContent asmContentFile, int *IC, int *DC, int lineNumber);
+void firstRead(AsmFileContent asmContentFile, int *IC, int *DC, int lineNumber,int *errorsCounter);
 
 #endif //PROJECTMAMAN14_FIRSTASM_H

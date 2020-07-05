@@ -61,6 +61,10 @@ int isAlphaNumeric(const char *str) {
     return (*str >= 'a' && *str <= 'z') || (*str >= 'A' && *str <= 'Z');
 }
 
+int isJumpToLabelSymbol(const char *str) {
+    return *str == '&';
+}
+
 int isNumber(const char *str) {
     return *str >= '0' && *str <= '9';
 }
@@ -96,13 +100,13 @@ char *parseLabel(char *line, char **labelName, int lineNumber) {
             printf("[Error] - Label too large only %d characters, line %d", MAX_SYMBOL_SIZE, lineNumber);
             return NULL;
         }
-        label = malloc(sizeof(char) * (count+1));
+        label = malloc(sizeof(char) * (count + 1));
         if (!label) {
             printf("Allocation fail\n");
             return NULL;
         }
         strncpy(label, originalLine, count);
-        label[count]=0;
+        label[count] = 0;
         *labelName = label;
         if (!isAlphaNumeric(label)) {
             printf("[Error] - Syntax error, label must be Alpha Numeric, line %d", lineNumber);
@@ -110,7 +114,8 @@ char *parseLabel(char *line, char **labelName, int lineNumber) {
         }
         return label;
     } else {
-        printf("[Error] - Syntax error, label must be defined with ':' in the end, line %d", lineNumber);
+        return NULL;
+
     }
 
     return NULL;
@@ -164,12 +169,16 @@ int validateOperand(char *operand, int *addressType) {
     if (isRegister(operand) != -1) {
         *addressType = REG_ADDRESSING;
         return 1;
-    }
-    if (isAlphaNumeric(operand)) {
+    } else if (isJumpToLabelSymbol(operand)) { // if the operand have a & symbol
+        operand++;
+        if (isAlphaNumeric(operand)) {
+            *addressType = DIRECT_ADDRESSING;
+            return 1;
+        }
+    } else if (isAlphaNumeric(operand)) {
         *addressType = DIRECT_ADDRESSING;
         return 1;
-    }
-    if (isValueNumber(operand)) {
+    } else if (isValueNumber(operand)) {
         *addressType = IMMEDIATE_ADDRESSING;
         return 1;
     }
@@ -219,10 +228,8 @@ void calculateICAddress(int addressType, int *IC) {
         case IMMEDIATE_ADDRESSING:
         case DIRECT_ADDRESSING:
         case RELATIVE_ADDRESSING:
-            *IC = *IC + 2;
-            break;
         case REG_ADDRESSING:
-            *IC = *IC + 1;
+            *IC=*IC+1;
             break;
         default:
             break;
@@ -293,6 +300,7 @@ int parseCommand(char *line, char **command, int lineNumber, int *IC) {
                     parseOneOperand(operands, &firstOp);
                     if (firstOp != NULL) {
                         if (validateOperand(firstOp, &addressingType)) {
+                            calculateICAddress(addressingType, IC);
                             printf("Command %s  Operand %s Address Type %d", *command, firstOp, addressingType);
                         }
                     } else {
@@ -330,46 +338,55 @@ int validateCommandAddressType(char *command, char *operand, int operandDirectio
 }
 
 int isExternDirective(char *line) {
-    char EXTERN[] = ".extern", *originalLine,*directiveStatement,*finalDirective;
+    char EXTERN[] = ".extern", *originalLine, *directiveStatement, *finalDirective;
     int counter = 0, startOperandIndex = 0, i = 0;
     if (*line != ' ') {
         directiveStatement = skipLabel(line);
         directiveStatement = skipWhitesSpaces(directiveStatement);
-        originalLine=directiveStatement;
+        originalLine = directiveStatement;
         if (strchr(directiveStatement, '.')) {
             while (*directiveStatement != ' ') {
-                    counter++;
-                    directiveStatement++;
+                counter++;
+                directiveStatement++;
             }
 
-            finalDirective=(char*)malloc(sizeof(char)*counter);
-            strncpy(finalDirective,originalLine,counter);
-            finalDirective[counter]=0;
+            finalDirective = (char *) malloc(sizeof(char) * counter);
+            strncpy(finalDirective, originalLine, counter);
+            finalDirective[counter] = 0;
 
-            return !strcmp(finalDirective,EXTERN);
+            return !strcmp(finalDirective, EXTERN);
         }
     }
     return 0;
 }
 
-void populateDataDirective(int *DC,int *IC, int directiveType, char *directiveDefinedData) {
+void populateDataDirective(int *DC, int directiveType, char *directiveDefinedData) {
     int *snapShotMemory;
-    if (allocationDataSnapShotMemory() != NULL) {
-        snapShotMemory = addDataToSnapShotMemory(directiveDefinedData, directiveType, *DC);
-        *IC=*IC+*DC;
+    int dataCounter = 0;
+    dataCounter = *DC;
+    if (dataSnapShotMemory == NULL) {
+        allocationDataSnapShotMemory();
+        snapShotMemory = addDataToSnapShotMemory(directiveDefinedData, directiveType, &dataCounter);
+        *DC = dataCounter;
         if (snapShotMemory != NULL) {
-            printf("Data Added Succesfully -  DC = %d", *DC);
+            printf("[INFO] Data Added Succesfully -  DC = %d", *DC);
         } else {
             printf("[ERROR] - Can't allocate data snap shot memory ");
         }
     } else {
-        printf("[ERROR] - Can't allocate data snap shot memory ");
+        snapShotMemory = addDataToSnapShotMemory(directiveDefinedData, directiveType, &dataCounter);
+        *DC = dataCounter;
+        if (snapShotMemory != NULL) {
+            printf("[INFO] Data Added Succesfully -  DC = %d", *DC);
+        } else {
+            printf("[ERROR] - Can't allocate data snap shot memory ");
+        }
     }
 
 }
 
 int parseDirective(char *line, char **data, int lineNumber, int *directiveType) {
-    char DATA[] = ".data", STRING[] = ".string", *directive,*dataFixer,*copiedData;
+    char DATA[] = ".data", STRING[] = ".string", *directive, *dataFixer, *copiedData;
 
     int i = 0, directiveSeparatorIndex = 0, dataCounter = 0;
     char *directiveStatement = NULL;
@@ -377,48 +394,46 @@ int parseDirective(char *line, char **data, int lineNumber, int *directiveType) 
     if (*line != ' ') {
         directiveStatement = skipLabel(line);
         directiveStatement = skipWhitesSpaces(directiveStatement);
-
-        if (strchr(directiveStatement, '.')) {
-            for (i = 0; i < strlen(directiveStatement); i++) {
-                if (directiveStatement[i] == ' ') {
-                    directiveSeparatorIndex = i;
-                    break;
-                }
+    }
+    if (*line == ' ') {
+        directiveStatement = skipWhitesSpaces(line);
+    }
+    if (strchr(directiveStatement, '.')) {
+        for (i = 0; i < strlen(directiveStatement); i++) {
+            if (directiveStatement[i] == ' ') {
+                directiveSeparatorIndex = i;
+                break;
             }
-            if (directiveSeparatorIndex == 0) {
-                printf("[ERROR] - No spaces found between directive and data ,line %d  ", lineNumber);
-                return 0;
-            } else {
-                directive = malloc(sizeof(char) * directiveSeparatorIndex);
-                strncpy(directive, directiveStatement, directiveSeparatorIndex);
-            }
-        } else {
-            //printf("[ERROR] - Not found %s directive ,line %d  ", *data, lineNumber);
-            return 0;
         }
-        // check if a directive is .data/.string/
-        *directiveType = strcmp(directive, DATA) == 0 ? DATA_DIRECTIVE : STRING_DIRECTIVE;
-        if (*directiveType == DATA_DIRECTIVE || *directiveType == STRING_DIRECTIVE) {
-            directiveStatement += directiveSeparatorIndex;
-            directive=directiveStatement;
-            while (*directiveStatement != '\r') {
-                directiveStatement++;
-                dataCounter++;
-            }
-            copiedData = malloc(sizeof(char) * (dataCounter+1));
-            strncpy(copiedData, directive, dataCounter);
-            copiedData[dataCounter]=0;
-            *data=skipWhitesSpaces(copiedData);
-            return 1;
-        } else {
-            printf("[ERROR] - Not found %s directive ,line %d  ", *data, lineNumber);
-            free(data);
+        if (directiveSeparatorIndex == 0) {
+            printf("[ERROR] - No spaces found between directive and data ,line %d  ", lineNumber);
             return 0;
+        } else {
+            directive = malloc(sizeof(char) * directiveSeparatorIndex);
+            strncpy(directive, directiveStatement, directiveSeparatorIndex);
         }
     } else {
         return 0;
     }
-
+    // check if a directive is .data/.string/
+    *directiveType = strcmp(directive, DATA) == 0 ? DATA_DIRECTIVE : STRING_DIRECTIVE;
+    if (*directiveType == DATA_DIRECTIVE || *directiveType == STRING_DIRECTIVE) {
+        directiveStatement += directiveSeparatorIndex;
+        directive = directiveStatement;
+        while (*directiveStatement != '\r') {
+            directiveStatement++;
+            dataCounter++;
+        }
+        copiedData = malloc(sizeof(char) * (dataCounter + 1));
+        strncpy(copiedData, directive, dataCounter);
+        copiedData[dataCounter] = 0;
+        *data = skipWhitesSpaces(copiedData);
+        return 1;
+    } else {
+        printf("[ERROR] - Not found %s directive ,line %d  ", *data, lineNumber);
+        free(*data);
+        return 0;
+    }
 }
 
 

@@ -17,7 +17,7 @@ typedef struct
 
 }HashMap;
 
-extern int *dataSnapShotMemory;
+extern int *dataSnapShotMemory[256];
 extern int dataSize;
 
 int *allocationDataSnapShotMemory();
