@@ -4,19 +4,11 @@
 #include <stdlib.h>
 #include "Constanst.h"
 #include <string.h>
+#include "DataStructers.h"
 
-int *dataSnapShotMemory;
+int dataSnapShotMemory[256];
 int dataSize;
-const char separator[2] = ",";
 
-int *allocationDataSnapShotMemory() {
-    dataSnapShotMemory = (int *) malloc(sizeof(int) * 1);
-    if (dataSnapShotMemory != NULL) {
-        dataSize++;
-        return dataSnapShotMemory;
-    }
-    return NULL;
-}
 
 int *addDataToSnapShotMemory(char *data, int directiveType, int *DC) {
 
@@ -27,28 +19,26 @@ int *addDataToSnapShotMemory(char *data, int directiveType, int *DC) {
     switch (directiveType) {
 
         case DATA_DIRECTIVE:
-
-            while (i < strlen(data)-1) {
+            while (i < strlen(data) - 1) {
 
                 if (data[i] != ',') {
                     if (data[i] == '-') {
                         sigh = -1;
                         i++;
-                        dataSnapShotMemory[*(DC)++] = ((int) data[i] - ascii_code) * sigh;
+                        dataSnapShotMemory[counterOfData++] = ((int) data[i] - ascii_code) * sigh;
                     } else {
-                        dataSnapShotMemory[*(DC)++] = ((int) data[i] - ascii_code) * sigh;
+                        dataSnapShotMemory[counterOfData++] = ((int) data[i] - ascii_code) * sigh;
                     }
                     i++;
                 } else {
                     i++;
                 }
             }
-            *DC = +counterOfData;
             break;
         case STRING_DIRECTIVE:
             while (i < strlen(data)) {
                 if (data[i] != '"') {
-                    dataSnapShotMemory[*(DC)++] = (int) data[i];
+                    dataSnapShotMemory[counterOfData++] = (int) data[i];
                     i++;
                 } else {
                     i++;
@@ -59,5 +49,6 @@ int *addDataToSnapShotMemory(char *data, int directiveType, int *DC) {
             break;
 
     }
+    *DC=counterOfData;
     return dataSnapShotMemory;
 }

@@ -4,6 +4,7 @@
 #include "FirstAsm.h"
 #include "SymbolTable.h"
 
+SymbolTable *table;
 int main(int argc, char *argv[]) {
 
     int numberOfFiles = argc, fileLines = 0, i = 0, index = 0,IC = 0, DC = 0,errors=0;
@@ -26,10 +27,14 @@ int main(int argc, char *argv[]) {
                     for (index = 0; index < fileLines; index++) {
                         firstRead(asmContentFile[index], &IC, &DC, index,&errors);
                     }
-                    printf("IC = %d  \n ",IC);
-                    printf("DC= %d \n",DC);
-                    printf("Number of errors %d =  \t \n",errors);
+
                 }
+            }
+        }
+        if(table!=NULL) {
+            printf("LABEL | ADDRESS | TYPE ");
+            for (i = 0; i < MAX_DATA; i++) {
+                printf("%2s %2d %2s ",table[i].name,table[i].address,table[i].type==code?"code":"data");
             }
         }
     }

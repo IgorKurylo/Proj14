@@ -12,7 +12,7 @@
 void firstRead(AsmFileContent asmContentFile, int *IC,  int *DC, int lineNumber,int *errorsCounter) {
     char *labelName, *command, *directiveData;
     int addressType = -1, directiveType = 0;
-    int numberOfLine = lineNumber + 1;
+    int numberOfLine = lineNumber;
     int flagData=0;
     int labelData=0;
     SymbolTable row = {};
@@ -25,35 +25,35 @@ void firstRead(AsmFileContent asmContentFile, int *IC,  int *DC, int lineNumber,
         row.address = 0;
         row.is_extern = 1;
         if (addSymbol(row, lineNumber)) {
-            printf("[Line %d] .extern with operand %s added to table", lineNumber, labelName);
+            printf("[Line %d] .extern with operand %s added to table", numberOfLine+1, labelName);
         }
     }
     // parse label
-    if (parseLabel(asmContentFile.line, &labelName, numberOfLine)) {
+    if (parseLabel(asmContentFile.line, &labelName, numberOfLine+1)) {
         //add a label to symbol table
         row.name = labelName;
         row.address = INIT_ADDRESS + *IC;
         // ic come already calculation;
         labelData=1;
-        if(!addSymbol(row, lineNumber)){
-            *errorsCounter++;
-            printf("[Line %d] label %s exists in symbol table \n",numberOfLine,labelName);
-        }
     }
     if (parseDirective(asmContentFile.line, &directiveData, lineNumber, &directiveType)) {
         populateDataDirective(DC,directiveType, directiveData);
         if(labelData) {
-            row.address = INIT_ADDRESS + *DC;
+            row.address = INIT_ADDRESS +*IC+*DC;
             row.type = data;
         }
     }else {
         if (parseCommand(asmContentFile.line, &command, lineNumber, IC)) {
             if(labelData) {
                 row.type = code;
+                if(!addSymbol(row, lineNumber)){
+                    *errorsCounter++;
+                    printf("[Line %d] label %s exists in symbol table \n",numberOfLine+1,labelName);
+                }
             }
         }
     }
 
-    //TDB Check commands,data,string,extern,entry.
+
 
 }

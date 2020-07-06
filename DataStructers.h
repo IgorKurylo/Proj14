@@ -17,10 +17,9 @@ typedef struct
 
 }HashMap;
 
-extern int *dataSnapShotMemory[256];
-extern int dataSize;
+int dataSnapShotMemory[256];
+int dataSize;
 
-int *allocationDataSnapShotMemory();
 int *addDataToSnapShotMemory(char *data,int directiveType,int *DC);
 
 //typedef struct {
@@ -67,6 +66,5 @@ typedef struct {
     int lineSize;
 }AsmFileContent;
 
-extern Labels *labelsList;
 
 #endif //PROJECTMAMAN14_DATASTRUCTERS_H

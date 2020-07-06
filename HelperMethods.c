@@ -182,7 +182,7 @@ int validateOperand(char *operand, int *addressType) {
         *addressType = IMMEDIATE_ADDRESSING;
         return 1;
     }
-    return 0;
+    return -1;
 }
 
 
@@ -222,14 +222,16 @@ void parseOneOperand(char *operands, char **oneOperand) {
 
 }
 
-void calculateICAddress(int addressType, int *IC) {
+void calculateOffsetAddress(int addressType, int *offSet) {
     switch (addressType) {
 
         case IMMEDIATE_ADDRESSING:
         case DIRECT_ADDRESSING:
-        case RELATIVE_ADDRESSING:
         case REG_ADDRESSING:
-            *IC=*IC+1;
+            *offSet += 1;
+            break;
+        case RELATIVE_ADDRESSING:
+            *offSet += 2;
             break;
         default:
             break;
@@ -243,7 +245,7 @@ int isJmpCommand(char *command) {
 }
 
 int parseCommand(char *line, char **command, int lineNumber, int *IC) {
-    int i = 0, counter = 0, len = 0, numOfOperand = 0, addressingType;
+    int i = 0, counter = 0, len = 0, numOfOperand = 0, sourceAddressType = 0, destAddressType = 0, srcOffset = 0, destOffset = 0;
     char *command_operands = NULL, *parserCommand = NULL, *originalCommandLine = NULL, *operands = NULL, *firstOp = NULL, *secondOp = NULL;
 
     /*Skip label if exists and skip white or tab spaces*/
@@ -272,7 +274,7 @@ int parseCommand(char *line, char **command, int lineNumber, int *IC) {
 
     if (strchr(*command, '.') != NULL) return 0;
 
-    if (!isCommandExists(*command, &numOfOperand)) {
+    if (isCommandExists(*command, &numOfOperand) == -1) {
         printf("[ERROR] - Not found %s command,line %d  ", *command, lineNumber);
         free(parserCommand);
         return 0;
@@ -289,41 +291,50 @@ int parseCommand(char *line, char **command, int lineNumber, int *IC) {
         }
         switch (numOfOperand) {
             case 0:
-
+                (*IC)++;
                 break;
             case 1:
                 // get operand after a command
                 if (!isJmpCommand(*command)) {
-                    addressingType = RELATIVE_ADDRESSING;
-                    calculateICAddress(addressingType, IC);
+                    sourceAddressType = RELATIVE_ADDRESSING;
+                    calculateOffsetAddress(sourceAddressType, &srcOffset);
                 } else {
                     parseOneOperand(operands, &firstOp);
                     if (firstOp != NULL) {
-                        if (validateOperand(firstOp, &addressingType)) {
-                            calculateICAddress(addressingType, IC);
-                            printf("Command %s  Operand %s Address Type %d", *command, firstOp, addressingType);
+                        if (validateOperand(firstOp, &sourceAddressType)!=-1) {
+                            calculateOffsetAddress(sourceAddressType, &srcOffset);
+                            printf("Command %s  Operand %s Address Type %d", *command, firstOp, sourceAddressType);
+                        }else{
+                            //TODO: print error
                         }
                     } else {
                         printf("Command %s must have %d operands \n", *command, numOfOperand);
                     }
                     free(operands);
                 }
-
+                *IC+=srcOffset;
                 break;
             case 2:
                 parseTwoOperands(operands, &firstOp, &secondOp);
-                if (firstOp != NULL && secondOp != NULL) {
-                    if (validateOperand(firstOp, &addressingType)) {
-                        printf("Operand %s, Address Type %d", firstOp, addressingType);
-                        calculateICAddress(addressingType, IC);
+                if (firstOp != NULL) {
+                    if(validateOperand(firstOp, &sourceAddressType)!=-1) {
+                        calculateOffsetAddress(sourceAddressType, &srcOffset);
+                    }else{
+                        //TODO: print error
                     }
-                    if (validateOperand(secondOp, &addressingType)) {
-                        printf("Operand %s, Address Type %d", secondOp, addressingType);
-                        calculateICAddress(addressingType, IC);
+                } else if (secondOp != NULL) {
+                    if(validateOperand(secondOp, &destAddressType)!=-1) {
+                        calculateOffsetAddress(destAddressType, &srcOffset);
+                    }else{
+                        //TODO: print error
                     }
                 } else {
                     printf("Command %s must have %d operands \n", *command, numOfOperand);
                 }
+                if (sourceAddressType == REG_ADDRESSING && destAddressType == REG_ADDRESSING) {
+                    destOffset = 0;
+                }
+                *IC += srcOffset + destOffset + 1;
                 free(operands);
                 break;
             default:
@@ -363,24 +374,11 @@ int isExternDirective(char *line) {
 void populateDataDirective(int *DC, int directiveType, char *directiveDefinedData) {
     int *snapShotMemory;
     int dataCounter = 0;
-    dataCounter = *DC;
-    if (dataSnapShotMemory == NULL) {
-        allocationDataSnapShotMemory();
-        snapShotMemory = addDataToSnapShotMemory(directiveDefinedData, directiveType, &dataCounter);
-        *DC = dataCounter;
-        if (snapShotMemory != NULL) {
-            printf("[INFO] Data Added Succesfully -  DC = %d", *DC);
-        } else {
-            printf("[ERROR] - Can't allocate data snap shot memory ");
-        }
+    snapShotMemory = addDataToSnapShotMemory(directiveDefinedData, directiveType, DC);
+    if (snapShotMemory != NULL) {
+        printf("[INFO] Data Added Succesfully -  DC = %d", *DC);
     } else {
-        snapShotMemory = addDataToSnapShotMemory(directiveDefinedData, directiveType, &dataCounter);
-        *DC = dataCounter;
-        if (snapShotMemory != NULL) {
-            printf("[INFO] Data Added Succesfully -  DC = %d", *DC);
-        } else {
-            printf("[ERROR] - Can't allocate data snap shot memory ");
-        }
+        printf("[ERROR] - Can't allocate data snap shot memory ");
     }
 
 }
