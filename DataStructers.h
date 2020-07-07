@@ -20,7 +20,7 @@ typedef struct
 int dataSnapShotMemory[256];
 int dataSize;
 
-int *addDataToSnapShotMemory(char *data,int directiveType,int *DC);
+int *saveToSnapShotMemory(char *data,int directiveType,int *DC,int *errorCounter);
 
 //typedef struct {
 //    unsigned int era:3;

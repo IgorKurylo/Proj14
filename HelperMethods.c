@@ -84,7 +84,7 @@ int isComment(const char *line) {
     return 0;
 }
 
-char *parseLabel(char *line, char **labelName, int lineNumber) {
+char *parseLabel(char *line, char **labelName, int lineNumber,int *errorCounter) {
     char *label = NULL;
     char *originalLine = line;
     int count = 0;
@@ -95,14 +95,18 @@ char *parseLabel(char *line, char **labelName, int lineNumber) {
         }
         if (count == 0) {
             printf("[Error] - Label can't start with spaces, line %d", lineNumber);
+            *errorCounter++;
+            return NULL;
         }
         if (count > MAX_SYMBOL_SIZE) {
             printf("[Error] - Label too large only %d characters, line %d", MAX_SYMBOL_SIZE, lineNumber);
+            *errorCounter++;
             return NULL;
         }
         label = malloc(sizeof(char) * (count + 1));
         if (!label) {
-            printf("Allocation fail\n");
+            printf("[Fatal] Allocation  of memory fail\n");
+            *errorCounter++;
             return NULL;
         }
         strncpy(label, originalLine, count);
@@ -110,15 +114,13 @@ char *parseLabel(char *line, char **labelName, int lineNumber) {
         *labelName = label;
         if (!isAlphaNumeric(label)) {
             printf("[Error] - Syntax error, label must be Alpha Numeric, line %d", lineNumber);
+            *errorCounter++;
             return NULL;
         }
         return label;
     } else {
         return NULL;
-
     }
-
-    return NULL;
 }
 
 int isCommandExists(char *command, int *numOfOperands) {
@@ -172,7 +174,7 @@ int validateOperand(char *operand, int *addressType) {
     } else if (isJumpToLabelSymbol(operand)) { // if the operand have a & symbol
         operand++;
         if (isAlphaNumeric(operand)) {
-            *addressType = DIRECT_ADDRESSING;
+            *addressType = RELATIVE_ADDRESSING;
             return 1;
         }
     } else if (isAlphaNumeric(operand)) {
@@ -244,7 +246,7 @@ int isJmpCommand(char *command) {
     return strcmp(command, "jmp");
 }
 
-int parseCommand(char *line, char **command, int lineNumber, int *IC) {
+int parseCommand(char *line, char **command, int lineNumber, int *IC, int *errorCounter) {
     int i = 0, counter = 0, len = 0, numOfOperand = 0, sourceAddressType = 0, destAddressType = 0, srcOffset = 0, destOffset = 0;
     char *command_operands = NULL, *parserCommand = NULL, *originalCommandLine = NULL, *operands = NULL, *firstOp = NULL, *secondOp = NULL;
 
@@ -264,6 +266,7 @@ int parseCommand(char *line, char **command, int lineNumber, int *IC) {
     /* if no spaces between command and operands, return 0 for throw exception */
     if (counter == 0) {
         printf("[ERROR] - No spaces between command and operands, line %d", lineNumber);
+        *errorCounter++;
         return 0;
     }
 
@@ -276,6 +279,7 @@ int parseCommand(char *line, char **command, int lineNumber, int *IC) {
 
     if (isCommandExists(*command, &numOfOperand) == -1) {
         printf("[ERROR] - Not found %s command,line %d  ", *command, lineNumber);
+        *errorCounter++;
         free(parserCommand);
         return 0;
     } else {
@@ -301,35 +305,45 @@ int parseCommand(char *line, char **command, int lineNumber, int *IC) {
                 } else {
                     parseOneOperand(operands, &firstOp);
                     if (firstOp != NULL) {
-                        if (validateOperand(firstOp, &sourceAddressType)!=-1) {
+                        if (validateOperand(firstOp, &sourceAddressType) != -1) {
                             calculateOffsetAddress(sourceAddressType, &srcOffset);
-                            printf("Command %s  Operand %s Address Type %d", *command, firstOp, sourceAddressType);
-                        }else{
-                            //TODO: print error
+                        } else {
+                            printf("Operand %s invalid \n", firstOp);
+                            *errorCounter++;
+                            return 0;
                         }
                     } else {
                         printf("Command %s must have %d operands \n", *command, numOfOperand);
+                        *errorCounter++;
+                        return 0;
                     }
                     free(operands);
                 }
-                *IC+=srcOffset;
+                *IC += srcOffset;
                 break;
             case 2:
                 parseTwoOperands(operands, &firstOp, &secondOp);
                 if (firstOp != NULL) {
-                    if(validateOperand(firstOp, &sourceAddressType)!=-1) {
+                    if (validateOperand(firstOp, &sourceAddressType) != -1) {
                         calculateOffsetAddress(sourceAddressType, &srcOffset);
-                    }else{
-                        //TODO: print error
+                    } else {
+
+                        printf("Operand %s invalid \n", firstOp);
+                        *errorCounter++;
+                        return 0;
                     }
-                } else if (secondOp != NULL) {
-                    if(validateOperand(secondOp, &destAddressType)!=-1) {
-                        calculateOffsetAddress(destAddressType, &srcOffset);
-                    }else{
-                        //TODO: print error
+                }if (secondOp != NULL) {
+                    if (validateOperand(secondOp, &destAddressType) != -1) {
+                        calculateOffsetAddress(destAddressType, &destOffset);
+                    } else {
+                        printf("Operand %s invalid \n", secondOp);
+                        *errorCounter++;
+                        return 0;
                     }
                 } else {
                     printf("Command %s must have %d operands \n", *command, numOfOperand);
+                    *errorCounter++;
+                    return 0;
                 }
                 if (sourceAddressType == REG_ADDRESSING && destAddressType == REG_ADDRESSING) {
                     destOffset = 0;
@@ -348,9 +362,9 @@ int validateCommandAddressType(char *command, char *operand, int operandDirectio
 
 }
 
-int isExternDirective(char *line) {
+int isExternDirective(char *line,int *errorCounter) {
     char EXTERN[] = ".extern", *originalLine, *directiveStatement, *finalDirective;
-    int counter = 0, startOperandIndex = 0, i = 0;
+    int counter = 0;
     if (*line != ' ') {
         directiveStatement = skipLabel(line);
         directiveStatement = skipWhitesSpaces(directiveStatement);
@@ -371,20 +385,17 @@ int isExternDirective(char *line) {
     return 0;
 }
 
-void populateDataDirective(int *DC, int directiveType, char *directiveDefinedData) {
-    int *snapShotMemory;
-    int dataCounter = 0;
-    snapShotMemory = addDataToSnapShotMemory(directiveDefinedData, directiveType, DC);
-    if (snapShotMemory != NULL) {
-        printf("[INFO] Data Added Succesfully -  DC = %d", *DC);
-    } else {
-        printf("[ERROR] - Can't allocate data snap shot memory ");
-    }
 
+void populateDataDirective(int *DC, int directiveType, char *directiveDefinedData,int *errorCounter) {
+    int *snapShotMemory;
+    snapShotMemory = saveToSnapShotMemory(directiveDefinedData, directiveType, DC,errorCounter);
+    if (snapShotMemory != NULL) {
+        printf("[INFO] Data Added Succesfully -  DC = %d\n", *DC);
+    }
 }
 
-int parseDirective(char *line, char **data, int lineNumber, int *directiveType) {
-    char DATA[] = ".data", STRING[] = ".string", *directive, *dataFixer, *copiedData;
+int parseDirective(char *line, char **data,  int lineNumber, int *directiveType, int *errorsCounter) {
+    char DATA[] = ".data", STRING[] = ".string", *directive, *dataFixer, *copiedData, *copiedNumberArray = NULL;
 
     int i = 0, directiveSeparatorIndex = 0, dataCounter = 0;
     char *directiveStatement = NULL;
@@ -405,6 +416,7 @@ int parseDirective(char *line, char **data, int lineNumber, int *directiveType) 
         }
         if (directiveSeparatorIndex == 0) {
             printf("[ERROR] - No spaces found between directive and data ,line %d  ", lineNumber);
+            *errorsCounter++;
             return 0;
         } else {
             directive = malloc(sizeof(char) * directiveSeparatorIndex);
@@ -426,13 +438,16 @@ int parseDirective(char *line, char **data, int lineNumber, int *directiveType) 
         strncpy(copiedData, directive, dataCounter);
         copiedData[dataCounter] = 0;
         *data = skipWhitesSpaces(copiedData);
+
         return 1;
     } else {
-        printf("[ERROR] - Not found %s directive ,line %d  ", *data, lineNumber);
+        printf("[ERROR] - Not found %s directive ,line %d  ", *directiveType==1?"code":"data", lineNumber);
+        *errorsCounter++;
         free(*data);
         return 0;
     }
 }
+
 
 
 

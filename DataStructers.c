@@ -5,38 +5,44 @@
 #include "Constanst.h"
 #include <string.h>
 #include "DataStructers.h"
+#include "HelpersMethods.h"
 
 int dataSnapShotMemory[256];
 int dataSize;
 
+int addToDataSnapShot(char *number, int DC) {
+    int num;
+    char *end;
+    num = (int) strtol(number, &end, 10);
+    if (end != NULL && end != number && isEmptyLine(end) || end == NULL) {
+        dataSnapShotMemory[DC] = num;
+        return 1;
+    } else {
+        return 0;
+    }
+}
 
-int *addDataToSnapShotMemory(char *data, int directiveType, int *DC) {
-
+int *saveToSnapShotMemory(char *data, int directiveType, int *DC,int *errorCounter) {
+    char *numberStr = NULL;
     int i = 0;
-    int sigh = 1;
-    int counterOfData = 0;
-    int ascii_code = 48;
+    int counterOfData = *DC;
+    char *delim = ",";
     switch (directiveType) {
 
         case DATA_DIRECTIVE:
-            while (i < strlen(data) - 1) {
-
-                if (data[i] != ',') {
-                    if (data[i] == '-') {
-                        sigh = -1;
-                        i++;
-                        dataSnapShotMemory[counterOfData++] = ((int) data[i] - ascii_code) * sigh;
-                    } else {
-                        dataSnapShotMemory[counterOfData++] = ((int) data[i] - ascii_code) * sigh;
-                    }
-                    i++;
+            numberStr = strtok(NULL, delim);
+            while (numberStr) {
+                if (addToDataSnapShot(numberStr,counterOfData)) {
+                    counterOfData++;
+                    numberStr = strtok(NULL, delim);
                 } else {
-                    i++;
+                    *errorCounter++;
+                    break;
                 }
             }
             break;
         case STRING_DIRECTIVE:
-            while (i < strlen(data)) {
+            while (i <= strlen(data)) {
                 if (data[i] != '"') {
                     dataSnapShotMemory[counterOfData++] = (int) data[i];
                     i++;
@@ -44,11 +50,13 @@ int *addDataToSnapShotMemory(char *data, int directiveType, int *DC) {
                     i++;
                 }
             }
+
             break;
         default:
             break;
 
     }
-    *DC=counterOfData;
+    *DC = counterOfData;
+    dataSize += counterOfData;
     return dataSnapShotMemory;
 }

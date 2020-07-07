@@ -5,7 +5,6 @@
 #ifndef PROJECTMAMAN14_FIRSTASM_H
 #define PROJECTMAMAN14_FIRSTASM_H
 
-
-void firstRead(AsmFileContent asmContentFile, int *IC, int *DC, int lineNumber,int *errorsCounter);
+int firstRead(AsmFileContent asmContentFile, int *IC, int *DC, int lineNumber);
 
 #endif //PROJECTMAMAN14_FIRSTASM_H
