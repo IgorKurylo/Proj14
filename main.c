@@ -8,7 +8,7 @@ SymbolTable *table;
 int tableSize;
 int main(int argc, char *argv[]) {
 
-    int numberOfFiles = argc, fileLines = 0, i = 0, index = 0,IC = 0, DC = 0,errorsFirstRead=0;
+    int numberOfFiles = argc, fileLines = 0, i = 0, index = 0,IC = 0, DC = 0,ICF=0,DCF=0,errorsFirstRead=0;
     char *labelName = NULL;
     AsmFileContent *asmContentFile = NULL;
     FILE *file = NULL;
@@ -32,11 +32,16 @@ int main(int argc, char *argv[]) {
             }
         }
         if(table!=NULL) {
-            printf("LABEL | ADDRESS | TYPE \n ");
-            printf("====================== \n");
+            printf("%5s\t%3s\t\t%5s\n","LABEL","ADDRESS","TYPE");
+            printf("======================== \n");
             for (i = 0; i < tableSize; i++) {
-                printf("%2s %2d %2s \n",table[i].name,table[i].address,table[i].type==code?"code":"data");
+                printf("%5s\t%3d\t\t%5s\n",table[i].name,table[i].address,table[i].type==code?"code":"data");
             }
+            ICF=INIT_ADDRESS+IC+DC;
+            DCF=DC;
+            printf("Final Instructor Counter %d\n",ICF);
+            printf("Final Data Counter %d\n",DCF);
+
             printf("Errors found %d\n",errorsFirstRead);
         }
     }

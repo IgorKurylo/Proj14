@@ -14,23 +14,22 @@ int addToDataSnapShot(char *number, int DC) {
     int num;
     char *end;
     num = (int) strtol(number, &end, 10);
-    if (end != NULL && end != number && isEmptyLine(end) || end == NULL) {
+    if(end!=NULL) {
         dataSnapShotMemory[DC] = num;
         return 1;
-    } else {
+    }else{
         return 0;
     }
 }
 
-int *saveToSnapShotMemory(char *data, int directiveType, int *DC,int *errorCounter) {
+int *saveToSnapShotMemory(char *data, int directiveType, int *DC,int *deltaCounter,int *errorCounter) {
     char *numberStr = NULL;
     int i = 0;
     int counterOfData = *DC;
     char *delim = ",";
     switch (directiveType) {
-
         case DATA_DIRECTIVE:
-            numberStr = strtok(NULL, delim);
+            numberStr = strtok(data, delim);
             while (numberStr) {
                 if (addToDataSnapShot(numberStr,counterOfData)) {
                     counterOfData++;
@@ -40,6 +39,7 @@ int *saveToSnapShotMemory(char *data, int directiveType, int *DC,int *errorCount
                     break;
                 }
             }
+            *deltaCounter=counterOfData;
             break;
         case STRING_DIRECTIVE:
             while (i <= strlen(data)) {
@@ -50,7 +50,7 @@ int *saveToSnapShotMemory(char *data, int directiveType, int *DC,int *errorCount
                     i++;
                 }
             }
-
+            *deltaCounter=counterOfData;
             break;
         default:
             break;

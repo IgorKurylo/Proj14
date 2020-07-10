@@ -20,7 +20,7 @@ typedef struct
 int dataSnapShotMemory[256];
 int dataSize;
 
-int *saveToSnapShotMemory(char *data,int directiveType,int *DC,int *errorCounter);
+int *saveToSnapShotMemory(char *data,int directiveType,int *DC,int *deltaCounter,int *errorCounter);
 
 //typedef struct {
 //    unsigned int era:3;
@@ -64,6 +64,7 @@ typedef struct {
     char line[MAX_LINE_SIZE];
     int lineNumber;
     int lineSize;
+    int isLabel;
 }AsmFileContent;
 
 

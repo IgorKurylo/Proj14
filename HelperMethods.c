@@ -71,9 +71,11 @@ int isNumber(const char *str) {
 
 int isEmptyLine(char *line) {
     char *lineEmpty;
-    lineEmpty = skipWhitesSpaces(line);
-    if (*lineEmpty == ' ' || *lineEmpty == '\t') {
-        return 1;
+    if(line!=NULL) {
+        lineEmpty = skipWhitesSpaces(line);
+        if (*lineEmpty == ' ' || *lineEmpty == '\t') {
+            return 1;
+        }
     }
     return 0;
 }
@@ -224,21 +226,21 @@ void parseOneOperand(char *operands, char **oneOperand) {
 
 }
 
-void calculateOffsetAddress(int addressType, int *offSet) {
+int calculateOffsetAddress(int addressType) {
+    int offSet=0;
     switch (addressType) {
 
         case IMMEDIATE_ADDRESSING:
         case DIRECT_ADDRESSING:
         case REG_ADDRESSING:
-            *offSet += 1;
-            break;
         case RELATIVE_ADDRESSING:
-            *offSet += 2;
+            offSet = 1;
             break;
-        default:
+        case -1:
+            offSet=-1;
             break;
-
     }
+    return offSet;
 }
 
 
@@ -301,12 +303,18 @@ int parseCommand(char *line, char **command, int lineNumber, int *IC, int *error
                 // get operand after a command
                 if (!isJmpCommand(*command)) {
                     sourceAddressType = RELATIVE_ADDRESSING;
-                    calculateOffsetAddress(sourceAddressType, &srcOffset);
+                    srcOffset=calculateOffsetAddress(sourceAddressType);
+
                 } else {
                     parseOneOperand(operands, &firstOp);
                     if (firstOp != NULL) {
                         if (validateOperand(firstOp, &sourceAddressType) != -1) {
-                            calculateOffsetAddress(sourceAddressType, &srcOffset);
+                            srcOffset=calculateOffsetAddress(sourceAddressType);
+                            if(srcOffset==-1){
+                                printf("Addressing type id  %d invalid \n", sourceAddressType);
+                                *errorCounter++;
+                                return 0;
+                            }
                         } else {
                             printf("Operand %s invalid \n", firstOp);
                             *errorCounter++;
@@ -319,22 +327,30 @@ int parseCommand(char *line, char **command, int lineNumber, int *IC, int *error
                     }
                     free(operands);
                 }
-                *IC += srcOffset;
+                *IC += srcOffset+1;
                 break;
             case 2:
                 parseTwoOperands(operands, &firstOp, &secondOp);
                 if (firstOp != NULL) {
                     if (validateOperand(firstOp, &sourceAddressType) != -1) {
-                        calculateOffsetAddress(sourceAddressType, &srcOffset);
+                        srcOffset=calculateOffsetAddress(sourceAddressType);
+                        if(srcOffset==-1){
+                            printf("Addressing type id  %d invalid \n", sourceAddressType);
+                            *errorCounter++;
+                            return 0;
+                        }
                     } else {
-
                         printf("Operand %s invalid \n", firstOp);
                         *errorCounter++;
                         return 0;
                     }
                 }if (secondOp != NULL) {
                     if (validateOperand(secondOp, &destAddressType) != -1) {
-                        calculateOffsetAddress(destAddressType, &destOffset);
+                        destOffset=calculateOffsetAddress(destAddressType);
+                        if(destOffset==-1){
+                            printf("Addressing type id  %d invalid \n", destAddressType);
+                            *errorCounter++;
+                        }
                     } else {
                         printf("Operand %s invalid \n", secondOp);
                         *errorCounter++;
@@ -347,6 +363,10 @@ int parseCommand(char *line, char **command, int lineNumber, int *IC, int *error
                 }
                 if (sourceAddressType == REG_ADDRESSING && destAddressType == REG_ADDRESSING) {
                     destOffset = 0;
+                }else if(sourceAddressType == REG_ADDRESSING && destAddressType!=REG_ADDRESSING){
+                        srcOffset=0;
+                }else if(sourceAddressType != REG_ADDRESSING && destAddressType==REG_ADDRESSING){
+                    destOffset=0;
                 }
                 *IC += srcOffset + destOffset + 1;
                 free(operands);
@@ -386,14 +406,14 @@ int isExternDirective(char *line,int *errorCounter) {
 }
 
 
-void populateDataDirective(int *DC, int directiveType, char *directiveDefinedData,int *errorCounter) {
-    int *snapShotMemory;
-    snapShotMemory = saveToSnapShotMemory(directiveDefinedData, directiveType, DC,errorCounter);
-    if (snapShotMemory != NULL) {
-        printf("[INFO] Data Added Succesfully -  DC = %d\n", *DC);
+int populateDataDirective(int *DC, int directiveType, char *directiveDefinedData,int *errorCounter) {
+    int *snapShotMemory,deltaDataCounter=0;
+    snapShotMemory = saveToSnapShotMemory(directiveDefinedData, directiveType, DC,&deltaDataCounter,errorCounter);
+    if (snapShotMemory == NULL) {
+        *errorCounter++;
     }
+    return deltaDataCounter;
 }
-
 int parseDirective(char *line, char **data,  int lineNumber, int *directiveType, int *errorsCounter) {
     char DATA[] = ".data", STRING[] = ".string", *directive, *dataFixer, *copiedData, *copiedNumberArray = NULL;
 

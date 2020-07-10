@@ -26,6 +26,6 @@ int validateOperand(char *operand, int *addressType);
 int isValueNumber(char *operand);
 int isExternDirective(char *line,int *errorsCounter);
 void calculateOffsetAddress(int addressType,int *IC);
-void populateDataDirective(int *DC, int directiveType, char *directiveDefinedData,int *errorCounter);
+int populateDataDirective(int *DC, int directiveType, char *directiveDefinedData,int *errorCounter);
 
 #endif //PROJECTMAMAN14_HELPERSMETHODS_H
