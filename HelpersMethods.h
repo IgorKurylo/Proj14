@@ -16,6 +16,8 @@ int isNumber(const char *str);
 
 int operandValidation(char *line,int *num,HashMap command);
 int addressingValidation(char *line,int addressingType,HashMap command);
+int numberValidation(char *number, int *value, int lineNumber, int *errorCounter);
+int stringValidation(char **string,int lineNumber,int *errorCounter);
 
 int isJumpToLabelSymbol(const char *str);
 void skipWhitesSpaces(char *line);
@@ -26,6 +28,6 @@ int validateOperand(char *operand, int *addressType);
 int isValueNumber(char *operand);
 int isExternDirective(char *line,int *errorsCounter);
 void calculateOffsetAddress(int addressType,int *IC);
-int populateDataDirective(int *DC, int directiveType, char *directiveDefinedData,int *errorCounter);
+int populateDataDirective(int *DC, int directiveType, char *directiveDefinedData,int *errorCounter,int lineNumber);
 
 #endif //PROJECTMAMAN14_HELPERSMETHODS_H

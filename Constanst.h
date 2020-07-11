@@ -9,6 +9,7 @@
 #define INIT_ADDRESS 100
 #define MAX_SYMBOL_SIZE 31
 #define MAX_DATA 256
+#define MEMORY_WORD_SIZE 24
 #define ERROR "ERROR"
 #define TRUE 1
 #define FALSE 0

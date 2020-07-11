@@ -17,10 +17,10 @@ typedef struct
 
 }HashMap;
 
-int dataSnapShotMemory[256];
+int dataSnapShotMemory[MAX_DATA];
 int dataSize;
 
-int *saveToSnapShotMemory(char *data,int directiveType,int *DC,int *deltaCounter,int *errorCounter);
+int *saveToSnapShotMemory(char *data,int directiveType,int *DC,int *deltaCounter,int *errorCounter,int lineNumber);
 
 //typedef struct {
 //    unsigned int era:3;

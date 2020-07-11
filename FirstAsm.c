@@ -49,8 +49,7 @@ int firstRead(AsmFileContent asmContentFile, int *IC, int *DC, int lineNumber) {
         if(asmContentFile.isLabel){
             addSymbolInTable(labelName,rowType,INIT_ADDRESS+*IC+*DC,lineNumber,&errorsCounter);
         }
-
-        populateDataDirective(DC, directiveType, directiveData, &errorsCounter);
+        populateDataDirective(DC, directiveType, directiveData, &errorsCounter,lineNumber);
     } else if (parseCommand(asmContentFile.line, &command, lineNumber, IC, &errorsCounter)) { // parse command
         rowType = code;
         if(asmContentFile.isLabel) {
