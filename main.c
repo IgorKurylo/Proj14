@@ -3,9 +3,9 @@
 #include "FileMethods.h"
 #include "FirstAsm.h"
 #include "SymbolTable.h"
-
 SymbolTable *table;
 int tableSize;
+
 int main(int argc, char *argv[]) {
 
     int numberOfFiles = argc, fileLines = 0, i = 0, index = 0,IC = 0, DC = 0,ICF=0,DCF=0,errorsFirstRead=0;
@@ -39,9 +39,9 @@ int main(int argc, char *argv[]) {
             }
             ICF=INIT_ADDRESS+IC+DC;
             DCF=DC;
-            printf("Final Instructor Counter %d\n",ICF);
+            printf("Final Instructor Counter %d\n",ICF-1);
             printf("Final Data Counter %d\n",DCF);
-
+            //TODO: make error on asm file
             printf("Errors found %d\n",errorsFirstRead);
         }
     }

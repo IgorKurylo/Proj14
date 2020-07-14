@@ -13,22 +13,21 @@ int isCommandExists(char *command,int *numOfOperands);
 int parseDirective(char *line, char **data, int lineNumber, int *directiveType, int *errorsCounter);
 char *parseLabel(char *line,char **labelName,int lineNumber,int *errorsCounter);
 int isAlphaNumeric(const char *str);
-int isNumber(const char *str);
-
-int operandValidation(char *line,int *num,HashMap command);
-int addressingValidation(char *line,int addressingType,HashMap command);
 int numberValidation(char *number, int *value, int lineNumber, int *errorCounter);
 int stringValidation(char **string,int lineNumber,int *errorCounter);
 
 int isJumpToLabelSymbol(const char *str);
 void skipWhitesSpaces(char *line);
 char *skipLabel(char *line);
+int isExternDirective(char *line,int *errorsCounter);
+int populateDataDirective(int *DC, int directiveType, char *directiveDefinedData,int *errorCounter,int lineNumber);
+
+int isNumber(const char *str);
+
 void convertToBase16(int number);
 void convertToBase2(int number);
 int validateOperand(char *operand, int *addressType);
 int isValueNumber(char *operand);
-int isExternDirective(char *line,int *errorsCounter);
 void calculateOffsetAddress(int addressType,int *IC);
-int populateDataDirective(int *DC, int directiveType, char *directiveDefinedData,int *errorCounter,int lineNumber);
 
 #endif //PROJECTMAMAN14_HELPERSMETHODS_H

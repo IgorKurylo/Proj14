@@ -17,10 +17,6 @@ typedef struct
 
 }HashMap;
 
-int dataSnapShotMemory[MAX_DATA];
-int dataSize;
-
-int *saveToSnapShotMemory(char *data,int directiveType,int *DC,int *deltaCounter,int *errorCounter,int lineNumber);
 
 //typedef struct {
 //    unsigned int era:3;
@@ -66,6 +62,7 @@ typedef struct {
     int lineSize;
     int isLabel;
 }AsmFileContent;
+
 
 
 #endif //PROJECTMAMAN14_DATASTRUCTERS_H

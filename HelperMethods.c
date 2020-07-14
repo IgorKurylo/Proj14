@@ -4,8 +4,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include "MemorySnapShot.h"
 #include "DataStructers.h"
-#include "SymbolTable.h"
 #include "Constanst.h"
 
 const HashMap asm_commands[] =
