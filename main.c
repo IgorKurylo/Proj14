@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
     FILE *file = NULL;
 
     if (numberOfFiles == 1) {
-        printf("\n You must enter asm file name \n");
+        printf("\n[ERROR] - You must enter asm file name \n");
 
         printf("Program exit! \n");
 

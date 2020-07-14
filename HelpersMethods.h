@@ -7,7 +7,8 @@
 int isEmptyLine(char *line);
 int isComment(char *line);
 int isRegister(char *line);
-int parseCommand(char *line,char **asm_command,int lineNumber,int *IC,int *errorsCounter);
+int parseCommand(char *line, char **command, int lineNumber, int *numOfOperand, int *errorCounter,char **operands);
+int parseOperands(char *operands,char *command,int numOfOperand,int lineNumber,int *IC,int *errorCounter);
 int isCommandExists(char *command,int *numOfOperands);
 int parseDirective(char *line, char **data, int lineNumber, int *directiveType, int *errorsCounter);
 char *parseLabel(char *line,char **labelName,int lineNumber,int *errorsCounter);
