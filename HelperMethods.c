@@ -544,6 +544,21 @@ int parseDirective(char *line, char **data, int lineNumber, int *directiveType, 
     }
 }
 
+unsigned int convertToBase2(int number,int size){
+    int index=size-1,binary[size];
+    while(index >= 0)
+    {
+        /* Store LSB of num to bin */
+        binary[index] = number & 1;
+
+        /* Decrement index */
+        index--;
+
+        /* Right Shift num by 1 */
+        number >>= 1;
+    }
+}
+
 
 
 

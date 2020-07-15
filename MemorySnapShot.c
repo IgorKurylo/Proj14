@@ -47,3 +47,11 @@ int *saveToSnapShotMemory(char *data, int directiveType, int *DC, int *deltaCoun
     dataSize += counterOfData;
     return dataSnapShotMemory;
 }
+MachineMemory convertInstructionToMachineCode(int command,int funct,int sourceOperand,int sourceAddressType,int destOperand,int destAddressType){
+
+    MachineMemory  mechine_memory={};
+
+
+}
+
+

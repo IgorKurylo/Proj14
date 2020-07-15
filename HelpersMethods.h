@@ -15,7 +15,6 @@ char *parseLabel(char *line,char **labelName,int lineNumber,int *errorsCounter);
 int isAlphaNumeric(const char *str);
 int numberValidation(char *number, int *value, int lineNumber, int *errorCounter);
 int stringValidation(char **string,int lineNumber,int *errorCounter);
-
 int isJumpToLabelSymbol(const char *str);
 void skipWhitesSpaces(char *line);
 char *skipLabel(char *line);
@@ -25,7 +24,7 @@ int populateDataDirective(int *DC, int directiveType, char *directiveDefinedData
 int isNumber(const char *str);
 
 void convertToBase16(int number);
-void convertToBase2(int number);
+unsigned int convertToBase2(int number);
 int validateOperand(char *operand, int *addressType);
 int isValueNumber(char *operand);
 void calculateOffsetAddress(int addressType,int *IC);
