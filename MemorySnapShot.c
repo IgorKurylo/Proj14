@@ -6,11 +6,14 @@
 #include <string.h>
 #include "MemorySnapShot.h"
 #include "HelpersMethods.h"
+#include <stdio.h>
+
 
 int dataSnapShotMemory[MAX_DATA];
 int dataSize;
 
-int *saveToSnapShotMemory(char *data, int directiveType, int *DC, int *deltaCounter, int *errorCounter, int lineNumber) {
+int *
+saveToSnapShotMemory(char *data, int directiveType, int *DC, int *deltaCounter, int *errorCounter, int lineNumber) {
     char *numberStr = NULL;
     int i = 0;
     int counterOfData = *DC;
@@ -30,7 +33,7 @@ int *saveToSnapShotMemory(char *data, int directiveType, int *DC, int *deltaCoun
             *deltaCounter = counterOfData;
             break;
         case STRING_DIRECTIVE:
-            if(stringValidation(&data,lineNumber,errorCounter)) {
+            if (stringValidation(&data, lineNumber, errorCounter)) {
                 while (i <= strlen(data)) {
                     dataSnapShotMemory[counterOfData] = (int) data[i];
                     ++counterOfData;
@@ -47,11 +50,24 @@ int *saveToSnapShotMemory(char *data, int directiveType, int *DC, int *deltaCoun
     dataSize += counterOfData;
     return dataSnapShotMemory;
 }
-MachineMemory convertInstructionToMachineCode(int command,int funct,int sourceOperand,int sourceAddressType,int destOperand,int destAddressType){
 
-    MachineMemory  mechine_memory={};
+MachineMemory convertInstructionToMachineCode(int opcode, int funct, int sourceOperand, int sourceAddressType, int destOperand,
+                                int destAddressType, char *dataMemory) {
 
+    MachineMemory memory = {};
+    memory.data.instructions.opCode = opcode;
+    memory.data.instructions.funct = funct;
+    memory.data.instructions.srcRegister = sourceOperand;
+    memory.data.instructions.srcAddress = sourceAddressType;
+    memory.data.instructions.destRegister = destOperand;
+    memory.data.instructions.destAddress = destAddressType;
+    memory.are = 2;
 
+    if (dataMemory != NULL) {
+        printf("%s", dataMemory);
+        memory.data.extraWord.value=(int)dataMemory;
+    }
+    return memory;
 }
 
 

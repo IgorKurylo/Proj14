@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
                 asmContentFile = fileContent(file, &fileLines);
                 if(allocateTable()!=NULL) {
                     for (index = 0; index < fileLines; index++) {
-                        errorsFirstRead+=firstRead(asmContentFile[index], &IC, &DC, index,fileLines);
+                        errorsFirstRead+=firstRead(asmContentFile[index], &IC, &DC, index);
                     }
                 }
             }

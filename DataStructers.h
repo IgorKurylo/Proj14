@@ -4,76 +4,64 @@
 #include "Constanst.h"
 
 #ifndef PROJECTMAMAN14_DATASTRUCTERS_H
-typedef struct{
+typedef struct {
     int opCode;
     int funct;
     int numParams;
-}commandMetaData;
+} commandMetaData;
 
-typedef struct
-{
+typedef struct {
     char *key;
     commandMetaData value;
 
-}HashMap;
+} HashMap;
+enum ARE {
+    absolute = 0, relocatable = 1, external = 2
+};
+
+typedef struct {
+    unsigned int are: 3;
+    union {
+        struct {
+            unsigned int funct: 5;
+            unsigned int opCode: 6;
+            unsigned int srcRegister: 3;
+            unsigned int destRegister: 3;
+            unsigned int srcAddress: 2;
+            unsigned int destAddress: 2;
+        } instructions;
+        struct {
+            unsigned int value: 21;
+        } extraWord;
+    } data;
+} MachineMemory;
+
 
 
 typedef struct {
-    unsigned int era:3;
-    union {
-        struct {
-            unsigned int opCode:5;
-            unsigned int srcRegister:3;
-            unsigned int destRegister:3;
-            unsigned int srcAddress:2;
-            unsigned int destAddress:2;
-            unsigned int funct:5;
-        } instructionWord;
-        struct {
-            unsigned int value:21;
-        }extraWord;
-    }data;
-}MachineMemory;
-
-typedef struct{
-    unsigned int era:3;
-    unsigned int opCode:5;
-    unsigned int srcRegister:3;
-    unsigned int destRegister:3;
-    unsigned int srcAddress:2;
-    unsigned int destAddress:2;
-    unsigned int funct:5;
-    unsigned int extra_value:21
-}MachineCode;
-
-typedef struct
-{
     char name[2];
-}REGISTERS_STRUCT;
-typedef struct{
+} REGISTERS_STRUCT;
+typedef struct {
     char label[MAX_SYMBOL_SIZE];
     int lineNumber;
-}Labels;
+} Labels;
 
-typedef struct
-{
+typedef struct {
     char name[MAX_SYMBOL_SIZE];
     int address;
-}EntriesTable;
+} EntriesTable;
 
-typedef struct
-{
+typedef struct {
     char name[MAX_SYMBOL_SIZE];
     int address;
-}ExternalTable;
+} ExternalTable;
 
 typedef struct {
     char line[MAX_LINE_SIZE];
     int lineNumber;
     int lineSize;
     int isLabel;
-}AsmFileContent;
-
+} AsmFileContent;
 
 
 #endif //PROJECTMAMAN14_DATASTRUCTERS_H

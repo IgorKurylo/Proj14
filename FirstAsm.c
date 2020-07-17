@@ -59,6 +59,7 @@ int firstRead(AsmFileContent asmContentFile, int *IC, int *DC, int lineNumber) {
             printf("[ERROR] line %d: Error on parse operands from %s command\n",numberOfLine + 1,command);
         }
     }
+
     return errorsCounter;
 
 }

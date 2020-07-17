@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <string.h>
 #include "MemorySnapShot.h"
-#include "DataStructers.h"
 #include "Constanst.h"
 
 const HashMap asm_commands[] =
@@ -30,17 +29,6 @@ const HashMap asm_commands[] =
 const char *directives[] = {".string", ".data", ".extern", ".entry"};
 const char *registers[] = {"r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7"};
 
-void trimWhiteSpaces(char *line, int size) {
-    int i = 0, whiteSpaceCnt = 0;
-    if (size > 0) {
-        for (i = 0; i < size; i++) {
-            if (line[i] != ' ') {
-                line[whiteSpaceCnt++] = line[i];
-            }
-        }
-    }
-    line[whiteSpaceCnt] = '\0';
-}
 
 char *skipWhitesSpaces(char *line) {
     while ((*line == ' ') || (*line == '\t')) {
@@ -137,6 +125,19 @@ int isCommandExists(char *command, int *numOfOperands) {
     return -1;
 }
 
+HashMap commandOpCode_functCode(char *command) {
+
+    HashMap command_obj = {0};
+    int i = 0;
+    while (asm_commands[i].key) {
+        if (strcmp(command, asm_commands[i].key) == 0) {
+            command_obj = asm_commands[i];
+
+        }
+    }
+    return command_obj;
+}
+
 int isRegister(char *operand) {
     int i = 0;
     while (registers[i]) {
@@ -224,21 +225,25 @@ int isValueNumber(char *operand, int *value, int line, int *errorCounter) {
 }
 
 
-int validateOperand(char *operand, int *addressType, int line, int *errorCounter, int *value) {
+int validateOperand(char *operand, int *addressType, int line, int *errorCounter, int *value,int *operandType) {
 
     if (isRegister(operand) != -1) {
         *addressType = REG_ADDRESSING;
+        *operandType=0;
         return 1;
     } else if (isJumpToLabelSymbol(operand)) { // if the operand have a & symbol
         operand++;
         if (isAlphaNumeric(operand)) {
             *addressType = RELATIVE_ADDRESSING;
+            *operandType=2;
             return 1;
         }
     } else if (isAlphaNumeric(operand)) {
         *addressType = DIRECT_ADDRESSING;
+        *operandType=2;
         return 1;
     } else if (isValueNumber(operand, value, line, errorCounter)) {
+        *operandType=1;
         *addressType = IMMEDIATE_ADDRESSING;
         return 1;
     }
@@ -304,10 +309,13 @@ int isJmpCommand(char *command) {
     return strcmp(command, "jmp");
 }
 
+
 int parseOperands(char *operands, char *command, int numOfOperand, int lineNumber, int *IC, int *errorCounter) {
     char *firstOp = NULL, *secondOp = NULL;
-    int sourceAddressType = 0, destAddressType = 0, srcOffset = 0, destOffset = 0, value = 0;
-
+    HashMap commandObj;
+    int sourceAddressType = 0, destAddressType = 0, srcOffset = 0, destOffset = 0, valueSrc=0,valueDest=0;
+    int operandTypeSrc=-1,operandTypeDest=-1; // 0 REGISTER, 1 NUMBER, 2 LABEL
+    int destOperand=0,srcOperand=0;
     switch (numOfOperand) {
         case 0:
             ++(*IC);
@@ -317,15 +325,13 @@ int parseOperands(char *operands, char *command, int numOfOperand, int lineNumbe
             if (!isJmpCommand(command)) {
                 sourceAddressType = RELATIVE_ADDRESSING;
                 srcOffset = calculateOffsetAddress(sourceAddressType);
-
-
             } else {
                 parseOneOperand(operands, &firstOp);
                 if (firstOp != NULL) {
-                    if (validateOperand(firstOp, &sourceAddressType, lineNumber, errorCounter, NULL) != -1) {
-                        srcOffset = calculateOffsetAddress(sourceAddressType);
+                    if (validateOperand(firstOp, &destAddressType, lineNumber, errorCounter, &valueDest,&operandTypeDest) != -1) {
+                        srcOffset = calculateOffsetAddress(destAddressType);
                         if (srcOffset == -1) {
-                            printf("[ERROR] line %d: Addressing type id  %d invalid \n", lineNumber, sourceAddressType);
+                            printf("[ERROR] line %d: Addressing type id  %d invalid \n", lineNumber, destAddressType);
                             *errorCounter++;
                             return 0;
                         }
@@ -339,18 +345,35 @@ int parseOperands(char *operands, char *command, int numOfOperand, int lineNumbe
                     *errorCounter++;
                     return 0;
                 }
+                commandObj = commandOpCode_functCode(command);
+                if(commandObj.key!=NULL){
+                    switch (operandTypeDest) {
+                        case REGISTER_TYPE: // REGISTER TYPE
+                            destOperand=isRegister(firstOp);
+                            break;
+                        case NUMBER_TYPE: // NUMBER TYPE
+                            destOperand=valueDest;
+                            break;
+                        case LABEL_TYPE: // LABEL TYPE
+                            destOperand=0;
+                            break;
+
+                    }
+                    convertInstructionToMachineCode(commandObj.value.opCode,commandObj.value.opCode,0,0,destOperand,destAddressType,NULL);
+                }
+
                 free(operands);
             }
-            if (sourceAddressType == REG_ADDRESSING) {
+            if (destAddressType == REG_ADDRESSING) {
                 srcOffset = 0;
             }
-            *IC += srcOffset+1;
+            *IC += srcOffset + 1;
 
             return 1;
         case 2:
             parseTwoOperands(operands, &firstOp, &secondOp);
             if (firstOp != NULL) {
-                if (validateOperand(firstOp, &sourceAddressType, lineNumber, errorCounter, NULL) != -1) {
+                if (validateOperand(firstOp, &sourceAddressType, lineNumber, errorCounter, &valueSrc,&operandTypeSrc) != -1) {
                     srcOffset = calculateOffsetAddress(sourceAddressType);
                     if (srcOffset == -1) {
                         printf("[ERROR] line %d: Addressing type id  %d invalid \n", lineNumber, sourceAddressType);
@@ -364,7 +387,7 @@ int parseOperands(char *operands, char *command, int numOfOperand, int lineNumbe
                 }
             }
             if (secondOp != NULL) {
-                if (validateOperand(secondOp, &destAddressType, lineNumber, errorCounter, NULL) != -1) {
+                if (validateOperand(secondOp, &destAddressType, lineNumber, errorCounter, &valueDest,&operandTypeDest) != -1) {
                     destOffset = calculateOffsetAddress(destAddressType);
                     if (destOffset == -1) {
                         printf("[ERROR] line %d: Addressing type id  %d invalid \n", lineNumber, destAddressType);
@@ -389,11 +412,16 @@ int parseOperands(char *operands, char *command, int numOfOperand, int lineNumbe
                 destOffset = 0;
             }
             *IC += srcOffset + destOffset + 1;
+
+            convertInstructionToMachineCode(commandObj.value.opCode,commandObj.value.opCode,0,0,destOperand,destAddressType,NULL);
+
             free(operands);
             return 1;
         default:
             break;
     }
+
+
     return 1;
 
 }
@@ -544,20 +572,31 @@ int parseDirective(char *line, char **data, int lineNumber, int *directiveType, 
     }
 }
 
-unsigned int convertToBase2(int number,int size){
-    int index=size-1,binary[size];
-    while(index >= 0)
-    {
-        /* Store LSB of num to bin */
-        binary[index] = number & 1;
+int convertToBase2(int number, int size) {
+    int abs_number = 0;
+    if (number < 0) {
+        abs_number = abs(number);
 
-        /* Decrement index */
-        index--;
 
-        /* Right Shift num by 1 */
-        number >>= 1;
+    } else {
+
     }
 }
+
+//int *binary(int number, int size) {
+//    int binary[size], index = size - 1;
+//    while (index >= 0) {
+//        /* Store LSB of num to bin */
+//        binary[index] = number & 1;
+//
+//        /* Decrement index */
+//        index--;
+//
+//        /* Right Shift num by 1 */
+//        number >>= 1;
+//    }
+//    return &binary;
+//}
 
 
 
