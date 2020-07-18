@@ -4,6 +4,7 @@
 
 #ifndef PROJECTMAMAN14_CONSTANST_H
 #define NO_ERROR "NO ERROR"
+#define DELIM ","
 #define MAX_LINE_SIZE 80
 #define MAX_LINES_FILE 100
 #define INIT_ADDRESS 100

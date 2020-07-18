@@ -15,10 +15,10 @@ typedef struct {
     commandMetaData value;
 
 } HashMap;
-enum ARE {
-    absolute = 0, relocatable = 1, external = 2
-};
 
+enum ARE  {
+    absolute = 4, relocatable = 2, external = 1
+};
 typedef struct {
     unsigned int are: 3;
     union {
@@ -34,7 +34,7 @@ typedef struct {
             unsigned int value: 21;
         } extraWord;
     } data;
-} MachineMemory;
+} MachineCode;
 
 
 

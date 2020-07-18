@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void addSymbolInTable(char *label, int type, int address, int lineNumber, int *errorsCounter) {
+void addSymbolInTable(char *label, int type, int address, int lineNumber, int *errorCounter) {
     SymbolTable row = {};
     int result = 0;
     row.name = label;
@@ -16,13 +16,13 @@ void addSymbolInTable(char *label, int type, int address, int lineNumber, int *e
     row.type = type;
     result = addSymbol(row, lineNumber);
     if (!result) {
-        *errorsCounter++;
+        (*errorCounter)++;
     }
 }
 
 int firstRead(AsmFileContent asmContentFile, int *IC, int *DC, int lineNumber) {
     char *labelName, *command, *directiveData,*operands;
-    int numberOfLine = lineNumber, directiveType = 0, errorsCounter = 0, labelFlag = 0, rowType = 0,numOfOperands,result=-1;
+    int numberOfLine = lineNumber, directiveType = 0, errorsCounter = 0, rowType = 0,numOfOperands,result=-1;
     SymbolTable row = {};
     if (isComment(asmContentFile.line) || isEmptyLine(asmContentFile.line)) {
         return 0;
@@ -57,6 +57,7 @@ int firstRead(AsmFileContent asmContentFile, int *IC, int *DC, int lineNumber) {
         result=parseOperands(operands,command,numOfOperands,numberOfLine + 1,IC,&errorsCounter);
         if(!result){
             printf("[ERROR] line %d: Error on parse operands from %s command\n",numberOfLine + 1,command);
+            errorsCounter++;
         }
     }
 

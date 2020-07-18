@@ -21,7 +21,7 @@ char *skipLabel(char *line);
 int isExternDirective(char *line,int *errorsCounter);
 int populateDataDirective(int *DC, int directiveType, char *directiveDefinedData,int *errorCounter,int lineNumber);
 int validateOperand(char *operand, int *addressType, int line, int *errorCounter, int *value,int *operandType);
-
+int validateCommandAddressType(char *command, int addressTypeSrc, int addressTypeDest);
 int isNumber(const char *str);
 void convertToBase16(int number);
 int convertToBase2(int number,int size);
