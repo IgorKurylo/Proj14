@@ -17,6 +17,7 @@ typedef struct
 {
     char *name;
     enum TYPE_SYMBOL type;
+    int is_entry;
     int is_extern;
     int address;
 }SymbolTable;
@@ -26,7 +27,8 @@ extern int tableSize;
 
 SymbolTable *allocateTable();
 int addSymbol(SymbolTable row,int currentIndex);
-int deleteSymbol(int index);
 int checkIfSymbolExists(char *symbolName,int lineNumber);
+void updateSymbolTable(int IC);
 void freeTable();
+
 #endif //PROJECTMAMAN14_SYMBOLTABLE_H

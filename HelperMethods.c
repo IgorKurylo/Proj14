@@ -31,6 +31,8 @@ const char *directives[] = {".string", ".data", ".extern", ".entry"};
 const char *registers[] = {"r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7"};
 
 
+
+
 char *skipWhitesSpaces(char *line) {
     while ((*line == ' ') || (*line == '\t')) {
         line++;
@@ -360,8 +362,53 @@ int calculateOffsetAddress(int addressType) {
 int isJmpCommand(char *command) {
     return strcmp(command, "jmp");
 }
+void createMachineCode(char *firstOp, HashMap *commandObj, int destAddressType, int valueDest, int operandTypeDest,
+                       int *destExtraWord, int destOperand) {
+    if ((*commandObj).key != NULL) {
 
+        switch (operandTypeDest) {
+            case REGISTER_TYPE: // REGISTER TYPE
+                destOperand = isRegister(firstOp);
+                convertInstructionToMachineCode((*commandObj).value.opCode, (*commandObj).value.opCode, 0, 0,
+                                                destOperand,
+                                                destAddressType);
+                break;
+            case NUMBER_TYPE: // NUMBER TYPE
+                (*destExtraWord) = valueDest;
+                convertExtraValueToMachineCode(destExtraWord, operandTypeDest, -1);
+                break;
+            case LABEL_TYPE: // LABEL TYPE
+                (*destExtraWord) = 0;
+                convertExtraValueToMachineCode(NULL, operandTypeDest, -1);
+                break;
+            default:
+                break;
 
+        }
+
+    }
+}
+
+void createMachineCode2(char *command, HashMap *commandObj, int sourceAddressType, int destAddressType, int *valueSrc,
+                        int *valueDest, int operandTypeSrc, int operandTypeDest, int destOperand, int srcOperand) {
+    (*commandObj) = commandOpCode_functCode(command);
+    if ((*commandObj).key != NULL) {
+        if (operandTypeDest == REGISTER_TYPE && operandTypeSrc == REGISTER_TYPE) {
+            convertInstructionToMachineCode((*commandObj).value.opCode, (*commandObj).value.opCode, srcOperand,
+                                            sourceAddressType, destOperand,
+                                            destAddressType);
+        }
+        if (operandTypeSrc == NUMBER_TYPE) {
+            convertExtraValueToMachineCode(valueSrc, sourceAddressType, -1);
+        }
+        if (operandTypeDest == NUMBER_TYPE) {
+            convertExtraValueToMachineCode(valueDest, destAddressType, -1);
+        }
+        if (operandTypeDest == LABEL_TYPE || operandTypeSrc == LABEL_TYPE) {
+            convertExtraValueToMachineCode(NULL, operandTypeDest, -1);
+        }
+    }
+}
 int parseOperands(char *operands, char *command, int numOfOperand, int lineNumber, int *IC, int *errorCounter) {
     char *firstOp = NULL, *secondOp = NULL;
     HashMap commandObj;
@@ -375,6 +422,10 @@ int parseOperands(char *operands, char *command, int numOfOperand, int lineNumbe
             if (!validateCommandAddressType(command, sourceAddressType, destAddressType)) {
                 printf("[ERROR] line %d: No operand needed to %s command", lineNumber, command);
                 (*errorCounter)++;
+            }
+            commandObj = commandOpCode_functCode(command);
+            if (commandObj.key != NULL) {
+                convertInstructionToMachineCode(commandObj.value.opCode, commandObj.value.funct, 0, 0, 0, 0);
             }
             return 1;
         case 1:
@@ -409,24 +460,8 @@ int parseOperands(char *operands, char *command, int numOfOperand, int lineNumbe
                     (*errorCounter)++;
                 }
                 commandObj = commandOpCode_functCode(command);
-                if (commandObj.key != NULL) {
-                    switch (operandTypeDest) {
-                        case REGISTER_TYPE: // REGISTER TYPE
-                            destOperand = isRegister(firstOp);
-                            break;
-                        case NUMBER_TYPE: // NUMBER TYPE
-                            destExtraWord = valueDest;
-                            break;
-                        case LABEL_TYPE: // LABEL TYPE
-                            destExtraWord = 0;
-                            break;
-                        default:
-                            break;
-
-                    }
-                    convertInstructionToMachineCode(commandObj.value.opCode, commandObj.value.opCode, 0, 0, destOperand,
-                                                    destAddressType);
-                }
+                createMachineCode(firstOp, &commandObj, destAddressType, valueDest, operandTypeDest, &destExtraWord,
+                                  destOperand);
                 free(operands);
             }
             if (destAddressType == REG_ADDRESSING) {
@@ -492,10 +527,10 @@ int parseOperands(char *operands, char *command, int numOfOperand, int lineNumbe
             } else if (operandTypeSrc != REGISTER_TYPE && operandTypeDest == REGISTER_TYPE) {
                 destOperand = isRegister(secondOp);
             }
-            convertInstructionToMachineCode(commandObj.value.opCode, commandObj.value.opCode, srcOperand,
-                                            sourceAddressType, destOperand,
-                                            destAddressType);
 
+            createMachineCode2(command, &commandObj, sourceAddressType, destAddressType, &valueSrc, &valueDest,
+                               operandTypeSrc, operandTypeDest,
+                               destOperand, srcOperand);
             free(operands);
             return 1;
         default:
@@ -505,6 +540,9 @@ int parseOperands(char *operands, char *command, int numOfOperand, int lineNumbe
     return 1;
 
 }
+
+
+
 
 int parseCommand(char *line, char **command, int lineNumber, int *numOfOperand, int *errorCounter, char **operands) {
     int counter = 0;
@@ -649,30 +687,10 @@ int parseDirective(char *line, char **data, int lineNumber, int *directiveType, 
 }
 
 int convertToBase2(int number, int size) {
-    int abs_number = 0;
-    if (number < 0) {
-        abs_number = abs(number);
 
-
-    } else {
-
-    }
 }
 
-//int *binary(int number, int size) {
-//    int binary[size], index = size - 1;
-//    while (index >= 0) {
-//        /* Store LSB of num to bin */
-//        binary[index] = number & 1;
-//
-//        /* Decrement index */
-//        index--;
-//
-//        /* Right Shift num by 1 */
-//        number >>= 1;
-//    }
-//    return &binary;
-//}
+
 
 
 

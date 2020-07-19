@@ -29,9 +29,9 @@ saveToSnapShotMemory(char *data, int directiveType, int *DC, int *deltaCounter, 
             while (numberStr) {
                 if (numberValidation(numberStr, &value, lineNumber, errorCounter)) {
                     dataSnapShotMemory[counterOfData] = value;
+                    convertExtraValueToMachineCode(&value, -1, -1);
                     ++counterOfData;
                     numberStr = strtok(NULL, DELIM);
-
                 }
             }
             *deltaCounter = counterOfData;
@@ -40,8 +40,10 @@ saveToSnapShotMemory(char *data, int directiveType, int *DC, int *deltaCounter, 
             if (stringValidation(&data, lineNumber, errorCounter)) {
                 while (i <= strlen(data)) {
                     dataSnapShotMemory[counterOfData] = (int) data[i];
+                    value = (int) data[i];
                     ++counterOfData;
                     i++;
+                    convertExtraValueToMachineCode(&value, -1, -1);
                 }
                 *deltaCounter = counterOfData;
             }
@@ -58,9 +60,9 @@ saveToSnapShotMemory(char *data, int directiveType, int *DC, int *deltaCounter, 
 
 void initMachineMemoryCode() {
     machineCode = (MachineCode *) malloc(sizeof(MachineCode) * machineCodeSize);
-    if(machineCode==NULL){
+    if (machineCode == NULL) {
         printf("[ERROR] Machine code allocation fail\n");
-    }else{
+    } else {
         printf("[INFO] Machine code allocated successfully\n");
     }
 }
@@ -90,10 +92,30 @@ convertInstructionToMachineCode(int opcode, int funct, int sourceOperand, int so
     codeBlock.data.instructions.destRegister = destOperand;
     codeBlock.data.instructions.destAddress = destAddressType;
     codeBlock.are = absolute;
-    codeBlock.data.extraWord.value = 0;
     machineCode[machineCodeSize - 1] = codeBlock;
 
     return codeBlock;
+}
+
+MachineCode convertExtraValueToMachineCode(const int *value, int addressType, int isLabelExternal) {
+    if (machineCode == NULL) {
+        initMachineMemoryCode();
+    } else {
+        machineCode = resizeMachineMemoryCode();
+    }
+    MachineCode extraWord = {};
+    extraWord.data.extraWord.value = value != NULL ? *value : 0;
+    if (addressType != -1) {
+        if (addressType == DIRECT_ADDRESSING) {
+            if (isLabelExternal != -1) {
+                extraWord.are = isLabelExternal ? external : relocatable;
+            }
+        } else if (addressType == IMMEDIATE_ADDRESSING || addressType == RELATIVE_ADDRESSING) {
+            extraWord.are = absolute;
+
+        }
+    }
+
 }
 
 

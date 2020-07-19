@@ -28,6 +28,9 @@ int main(int argc, char *argv[]) {
                     for (index = 0; index < fileLines; index++) {
                         errorsFirstRead+=firstRead(asmContentFile[index], &IC, &DC, index);
                     }
+                    ICF=IC;
+                    DCF=DC;
+                    //TODO: update symbol table
                 }
             }
         }
@@ -37,8 +40,7 @@ int main(int argc, char *argv[]) {
             for (i = 0; i < tableSize; i++) {
                 printf("%5s\t%3d\t\t%5s\n",table[i].name,table[i].address,table[i].type==code?"code":"data");
             }
-            ICF=INIT_ADDRESS+IC+DC;
-            DCF=DC;
+
             printf("Instructor Counter %d\n",IC);
             printf("Data Counter %d\n",DC);
 
@@ -46,7 +48,6 @@ int main(int argc, char *argv[]) {
             printf("Final Data Counter %d\n",DCF);
 
 
-            //TODO: make error on asm file
             printf("Errors found %d\n",errorsFirstRead);
         }
     }
