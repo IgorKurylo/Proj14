@@ -7,11 +7,9 @@
 
 #include "Constanst.h"
 
-enum STATEMENT{
-    SYMBOL = 1,COMMAND=2,VIRTUAL_INSTRUCTION=5,EXTERN=3,ENTRY=4
-};
+
 enum TYPE_SYMBOL{
-    code=1,data=2
+    symbol_code=1,symbol_data=2,symbol_external=3,symbol_entry=4
 };
 typedef struct
 {

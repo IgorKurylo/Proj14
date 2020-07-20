@@ -14,6 +14,6 @@ extern int dataSize;
 extern MachineCode *machineCode;
 int *saveToSnapShotMemory(char *data,int directiveType,int *DC,int *deltaCounter,int *errorCounter,int lineNumber);
 MachineCode convertInstructionToMachineCode(int command,int funct,int sourceOperand,int sourceAddressType,int destOperand,int destAddressType);
-MachineCode convertExtraValueToMachineCode(const int *value, int addressType, int isLabelExternal);
+MachineCode convertExtraValueToMachineCode(int value, int addressType, int isLabelExternal);
 
 #endif //PROJ14_MEMORYSNAPSHOT_H

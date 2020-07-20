@@ -65,7 +65,7 @@ int checkIfSymbolExists(char *symbolName, int lineNumber) {
 void updateSymbolTable(int IC) {
     int i = 0;
     for (i = 0; i < tableSize; i++) {
-        if (table[i].type == data) {
+        if (table[i].type == symbol_data) {
             table[i].address += IC;
         }
     }

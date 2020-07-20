@@ -31,8 +31,6 @@ const char *directives[] = {".string", ".data", ".extern", ".entry"};
 const char *registers[] = {"r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7"};
 
 
-
-
 char *skipWhitesSpaces(char *line) {
     while ((*line == ' ') || (*line == '\t')) {
         line++;
@@ -64,7 +62,7 @@ int isEmptyLine(char *line) {
     char *lineEmpty;
     if (line != NULL) {
         lineEmpty = skipWhitesSpaces(line);
-        if (*lineEmpty == ' ' || *lineEmpty == '\t') {
+        if (*lineEmpty == ' ' || *lineEmpty == '\t' || *lineEmpty == '\n') {
             return 1;
         }
     }
@@ -362,8 +360,10 @@ int calculateOffsetAddress(int addressType) {
 int isJmpCommand(char *command) {
     return strcmp(command, "jmp");
 }
+
+
 void createMachineCode(char *firstOp, HashMap *commandObj, int destAddressType, int valueDest, int operandTypeDest,
-                       int *destExtraWord, int destOperand) {
+                       int destExtraWord, int destOperand) {
     if ((*commandObj).key != NULL) {
 
         switch (operandTypeDest) {
@@ -374,12 +374,12 @@ void createMachineCode(char *firstOp, HashMap *commandObj, int destAddressType, 
                                                 destAddressType);
                 break;
             case NUMBER_TYPE: // NUMBER TYPE
-                (*destExtraWord) = valueDest;
+                (destExtraWord) = valueDest;
                 convertExtraValueToMachineCode(destExtraWord, operandTypeDest, -1);
                 break;
             case LABEL_TYPE: // LABEL TYPE
-                (*destExtraWord) = 0;
-                convertExtraValueToMachineCode(NULL, operandTypeDest, -1);
+                destExtraWord = 0;
+                convertExtraValueToMachineCode(0, operandTypeDest, -1);
                 break;
             default:
                 break;
@@ -389,12 +389,17 @@ void createMachineCode(char *firstOp, HashMap *commandObj, int destAddressType, 
     }
 }
 
-void createMachineCode2(char *command, HashMap *commandObj, int sourceAddressType, int destAddressType, int *valueSrc,
-                        int *valueDest, int operandTypeSrc, int operandTypeDest, int destOperand, int srcOperand) {
+void createMachineCode2(char *command, HashMap *commandObj, int sourceAddressType, int destAddressType, int valueSrc,
+                        int valueDest, int operandTypeSrc, int operandTypeDest, int destOperand, int srcOperand) {
     (*commandObj) = commandOpCode_functCode(command);
     if ((*commandObj).key != NULL) {
         if (operandTypeDest == REGISTER_TYPE && operandTypeSrc == REGISTER_TYPE) {
-            convertInstructionToMachineCode((*commandObj).value.opCode, (*commandObj).value.opCode, srcOperand,
+            convertInstructionToMachineCode((*commandObj).value.opCode, (*commandObj).value.funct, srcOperand,
+                                            sourceAddressType, destOperand,
+                                            destAddressType);
+        }
+        if (operandTypeDest == REGISTER_TYPE || operandTypeSrc == REGISTER_TYPE) {
+            convertInstructionToMachineCode((*commandObj).value.opCode, (*commandObj).value.funct, srcOperand,
                                             sourceAddressType, destOperand,
                                             destAddressType);
         }
@@ -405,10 +410,11 @@ void createMachineCode2(char *command, HashMap *commandObj, int sourceAddressTyp
             convertExtraValueToMachineCode(valueDest, destAddressType, -1);
         }
         if (operandTypeDest == LABEL_TYPE || operandTypeSrc == LABEL_TYPE) {
-            convertExtraValueToMachineCode(NULL, operandTypeDest, -1);
+            convertExtraValueToMachineCode(0, operandTypeDest, -1);
         }
     }
 }
+
 int parseOperands(char *operands, char *command, int numOfOperand, int lineNumber, int *IC, int *errorCounter) {
     char *firstOp = NULL, *secondOp = NULL;
     HashMap commandObj;
@@ -460,9 +466,8 @@ int parseOperands(char *operands, char *command, int numOfOperand, int lineNumbe
                     (*errorCounter)++;
                 }
                 commandObj = commandOpCode_functCode(command);
-                createMachineCode(firstOp, &commandObj, destAddressType, valueDest, operandTypeDest, &destExtraWord,
+                createMachineCode(firstOp, &commandObj, destAddressType, valueDest, operandTypeDest, destExtraWord,
                                   destOperand);
-                free(operands);
             }
             if (destAddressType == REG_ADDRESSING) {
                 destOffset = 0;
@@ -524,14 +529,15 @@ int parseOperands(char *operands, char *command, int numOfOperand, int lineNumbe
             } else if (operandTypeSrc == REGISTER_TYPE && operandTypeDest != REGISTER_TYPE) {
 
                 srcOperand = isRegister(firstOp);
+                destAddressType = 0;
             } else if (operandTypeSrc != REGISTER_TYPE && operandTypeDest == REGISTER_TYPE) {
                 destOperand = isRegister(secondOp);
+                sourceAddressType = 0;
             }
 
-            createMachineCode2(command, &commandObj, sourceAddressType, destAddressType, &valueSrc, &valueDest,
+            createMachineCode2(command, &commandObj, sourceAddressType, destAddressType, valueSrc, valueDest,
                                operandTypeSrc, operandTypeDest,
                                destOperand, srcOperand);
-            free(operands);
             return 1;
         default:
             break;
@@ -540,8 +546,6 @@ int parseOperands(char *operands, char *command, int numOfOperand, int lineNumbe
     return 1;
 
 }
-
-
 
 
 int parseCommand(char *line, char **command, int lineNumber, int *numOfOperand, int *errorCounter, char **operands) {
@@ -557,7 +561,7 @@ int parseCommand(char *line, char **command, int lineNumber, int *numOfOperand, 
     }
     originalCommandLine = command_operands;
 
-    while (*command_operands != ' ' && *command_operands != '\r') {
+    while (*command_operands != ' ' && *command_operands != '\n') {
         command_operands++;
         counter++;
     }
@@ -572,8 +576,6 @@ int parseCommand(char *line, char **command, int lineNumber, int *numOfOperand, 
     parserCommand[counter] = 0;
     *command = parserCommand;
 
-    if (strchr(*command, '.') != NULL) return 0;
-
     if (isCommandExists(*command, numOfOperand) == -1) {
         printf("[ERROR] line %d: Not found %s command \n ", lineNumber, *command);
         *errorCounter++;
@@ -584,10 +586,11 @@ int parseCommand(char *line, char **command, int lineNumber, int *numOfOperand, 
             counter = 0;
             tmp_operands = (char *) malloc(sizeof(char) * (strlen(command_operands) + 1));
             command_operands++;
-            while (*command_operands != '\r') {
+            while (*command_operands != '\n') {
                 tmp_operands[counter++] = *command_operands;
                 command_operands++;
             }
+            tmp_operands = skipWhitesSpaces(tmp_operands);
             tmp_operands[counter] = '\0';
             *operands = tmp_operands;
         }
@@ -595,25 +598,73 @@ int parseCommand(char *line, char **command, int lineNumber, int *numOfOperand, 
     }
 }
 
+void extractOperand(char *line, char **label, char *originalLine, int counter) {
+    line += (counter + 1);
+    originalLine += (counter + 1);
+    counter = 0;
+    while (*line != '\n') {
+        counter++;
+        line++;
+    }
+    *label = (char *) malloc(sizeof(char) * (counter + 1));
+    strncpy(*label, originalLine, counter);
+}
 
-int isExternDirective(char *line, int *errorCounter) {
-    char EXTERN[] = ".extern", *originalLine, *directiveStatement, *finalDirective;
+int checkIsDirective(char *line, const char *originalLine, char *finalDirective, int *counter, const char *type) {
+    while (*line != ' ') {
+        (*counter)++;
+        line++;
+    }
+    finalDirective = (char *) malloc(sizeof(char) * (*counter));
+    strncpy(finalDirective, originalLine, *counter);
+    finalDirective[*counter] = 0;
+    if (strcmp(finalDirective, type) == 0) {
+        free(finalDirective);
+        return 1;
+    } else {
+        free(finalDirective);
+        return 0;
+    }
+}
+
+int isEntryDirective(char *line) {
+
+    char *originalLine, *directiveStatement, *finalDirective = NULL;
     int counter = 0;
-    if (*line != ' ') {
+    if (strchr(line, '.')) {
+        originalLine = line;
+        return checkIsDirective(line, originalLine, finalDirective, &counter, ENTRY);
+    } else {
         directiveStatement = skipLabel(line);
         directiveStatement = skipWhitesSpaces(directiveStatement);
         originalLine = directiveStatement;
         if (strchr(directiveStatement, '.')) {
-            while (*directiveStatement != ' ') {
-                counter++;
-                directiveStatement++;
+            return checkIsDirective(directiveStatement, originalLine, finalDirective, &counter, ENTRY);
+        }
+    }
+    return 0;
+}
+
+
+int isExternDirective(char *line, char **label, int *errorCounter) {
+    char *originalLine, *directiveStatement, *finalDirective = NULL;
+    int counter = 0;
+    if (strchr(line, '.')) {
+        originalLine = line;
+        if (checkIsDirective(line, originalLine, finalDirective, &counter, EXTERN)) {
+            extractOperand(line, label, originalLine, counter);
+            return 1;
+        }
+    } else {
+        directiveStatement = skipLabel(line);
+        directiveStatement = skipWhitesSpaces(directiveStatement);
+        originalLine = directiveStatement;
+        if (strchr(directiveStatement, '.')) {
+
+            if (checkIsDirective(directiveStatement, originalLine, finalDirective, &counter, EXTERN)) {
+                extractOperand(line, label, originalLine, counter);
+                return 1;
             }
-
-            finalDirective = (char *) malloc(sizeof(char) * counter);
-            strncpy(finalDirective, originalLine, counter);
-            finalDirective[counter] = 0;
-
-            return !strcmp(finalDirective, EXTERN);
         }
     }
     return 0;
@@ -668,7 +719,7 @@ int parseDirective(char *line, char **data, int lineNumber, int *directiveType, 
     if (*directiveType == DATA_DIRECTIVE || *directiveType == STRING_DIRECTIVE) {
         directiveStatement += directiveSeparatorIndex;
         directive = directiveStatement;
-        while (*directiveStatement != '\r') {
+        while (*directiveStatement != '\n') {
             directiveStatement++;
             dataCounter++;
         }

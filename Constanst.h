@@ -29,7 +29,8 @@
 #define REGISTER_TYPE 0
 #define NUMBER_TYPE 1
 #define LABEL_TYPE 2
-
+#define ENTRY ".entry"
+#define EXTERN ".extern"
 
 
 

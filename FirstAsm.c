@@ -14,6 +14,7 @@ void addSymbolInTable(char *label, int type, int address, int lineNumber, int *e
     row.name = label;
     row.address = address;
     row.type = type;
+    row.is_extern = type == symbol_external;
     result = addSymbol(row, lineNumber);
     if (!result) {
         (*errorCounter)++;
@@ -21,42 +22,46 @@ void addSymbolInTable(char *label, int type, int address, int lineNumber, int *e
 }
 
 int firstRead(AsmFileContent asmContentFile, int *IC, int *DC, int lineNumber) {
-    char *labelName, *command, *directiveData,*operands;
-    int numberOfLine = lineNumber, directiveType = 0, errorsCounter = 0, rowType = 0,numOfOperands,result=-1;
+    char *labelName, *command, *directiveData, *operands;
+    int numberOfLine = lineNumber, directiveType = 0, errorsCounter = 0, rowType = 0, numOfOperands, result = -1;
     SymbolTable row = {};
     if (isComment(asmContentFile.line) || isEmptyLine(asmContentFile.line)) {
         return 0;
     }
+    //parse if is entry directive and skip this
+    if (isEntryDirective(asmContentFile.line)) {
+        return 0;
+    }
     //parse if is extern directive
-    if (isExternDirective(asmContentFile.line, &errorsCounter)) {
-        row.name = parseLabel(asmContentFile.line, &labelName, numberOfLine, &errorsCounter);
+    if (isExternDirective(asmContentFile.line, &labelName, &errorsCounter)) {
+        row.name = labelName;
         row.address = 0;
         row.is_extern = 1;
-        if (addSymbol(row, lineNumber)) {
-            printf("[INFO] line %d: %s .extern added to table", numberOfLine + 1, labelName);
-        } else {
-            errorsCounter++;
-        }
+        rowType = symbol_external;
+        addSymbolInTable(labelName, rowType, 0, numberOfLine + 1, &errorsCounter);
+        return errorsCounter;
     }
     // parse label
     if (parseLabel(asmContentFile.line, &labelName, numberOfLine + 1, &errorsCounter)) {
-        asmContentFile.isLabel=1;
+        asmContentFile.isLabel = 1;
     }
     // parse directive .data/.string
     if (parseDirective(asmContentFile.line, &directiveData, numberOfLine + 1, &directiveType, &errorsCounter)) {
-        rowType = data;
-        if(asmContentFile.isLabel){
-            addSymbolInTable(labelName,rowType,INIT_ADDRESS+*IC+*DC,numberOfLine + 1,&errorsCounter);
+        rowType = symbol_data;
+        if (asmContentFile.isLabel) {
+            addSymbolInTable(labelName, rowType, INIT_ADDRESS + *IC + *DC, numberOfLine + 1, &errorsCounter);
         }
-        populateDataDirective(DC, directiveType, directiveData, &errorsCounter,numberOfLine + 1);
-    } else if (parseCommand(asmContentFile.line, &command, numberOfLine + 1,&numOfOperands,&errorsCounter,&operands)) { // parse command
-        rowType = code;
-        if(asmContentFile.isLabel) {
+        populateDataDirective(DC, directiveType, directiveData, &errorsCounter, numberOfLine + 1);
+        return errorsCounter;
+    } else if (parseCommand(asmContentFile.line, &command, numberOfLine + 1, &numOfOperands, &errorsCounter,
+                            &operands)) { // parse command
+        rowType = symbol_code;
+        if (asmContentFile.isLabel) {
             addSymbolInTable(labelName, rowType, INIT_ADDRESS + *IC, numberOfLine + 1, &errorsCounter);
         }
-        result=parseOperands(operands,command,numOfOperands,numberOfLine + 1,IC,&errorsCounter);
-        if(!result){
-            printf("[ERROR] line %d: Error on parse operands from %s command\n",numberOfLine + 1,command);
+        result = parseOperands(operands, command, numOfOperands, numberOfLine + 1, IC, &errorsCounter);
+        if (!result) {
+            printf("[ERROR] line %d: Error on parse operands from %s command\n", numberOfLine + 1, command);
             errorsCounter++;
         }
     }

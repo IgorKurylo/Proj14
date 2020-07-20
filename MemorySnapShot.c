@@ -29,7 +29,7 @@ saveToSnapShotMemory(char *data, int directiveType, int *DC, int *deltaCounter, 
             while (numberStr) {
                 if (numberValidation(numberStr, &value, lineNumber, errorCounter)) {
                     dataSnapShotMemory[counterOfData] = value;
-                    convertExtraValueToMachineCode(&value, -1, -1);
+                    convertExtraValueToMachineCode(value, -1, -1);
                     ++counterOfData;
                     numberStr = strtok(NULL, DELIM);
                 }
@@ -40,10 +40,10 @@ saveToSnapShotMemory(char *data, int directiveType, int *DC, int *deltaCounter, 
             if (stringValidation(&data, lineNumber, errorCounter)) {
                 while (i <= strlen(data)) {
                     dataSnapShotMemory[counterOfData] = (int) data[i];
-                    value = (int) data[i];
+                    convertExtraValueToMachineCode(dataSnapShotMemory[counterOfData], -1, -1);
                     ++counterOfData;
                     i++;
-                    convertExtraValueToMachineCode(&value, -1, -1);
+
                 }
                 *deltaCounter = counterOfData;
             }
@@ -97,14 +97,14 @@ convertInstructionToMachineCode(int opcode, int funct, int sourceOperand, int so
     return codeBlock;
 }
 
-MachineCode convertExtraValueToMachineCode(const int *value, int addressType, int isLabelExternal) {
+MachineCode convertExtraValueToMachineCode(int value, int addressType, int isLabelExternal) {
     if (machineCode == NULL) {
         initMachineMemoryCode();
     } else {
         machineCode = resizeMachineMemoryCode();
     }
     MachineCode extraWord = {};
-    extraWord.data.extraWord.value = value != NULL ? *value : 0;
+    extraWord.data.extraWord.value = value;
     if (addressType != -1) {
         if (addressType == DIRECT_ADDRESSING) {
             if (isLabelExternal != -1) {
