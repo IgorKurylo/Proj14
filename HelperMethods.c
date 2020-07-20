@@ -6,7 +6,9 @@
 #include <string.h>
 #include "MemorySnapShot.h"
 #include "Constanst.h"
+#include "DataStructers.h"
 
+const char *registers[] = {"r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7"};
 const HashMap asm_commands[] =
         {
                 {"mov",  {0,  0,  2}},
@@ -27,9 +29,6 @@ const HashMap asm_commands[] =
                 {"stop", {15, -1, 0}},
                 {NULL}
         };
-const char *directives[] = {".string", ".data", ".extern", ".entry"};
-const char *registers[] = {"r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7"};
-
 
 char *skipWhitesSpaces(char *line) {
     while ((*line == ' ') || (*line == '\t')) {

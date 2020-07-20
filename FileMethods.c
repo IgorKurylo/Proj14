@@ -4,8 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "DataStructers.h"
-
+#include "FileMethods.h"
 FILE *readFile(char *fileName){
 
     FILE *asmFile=NULL;

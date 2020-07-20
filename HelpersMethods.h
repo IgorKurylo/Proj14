@@ -4,6 +4,9 @@
 
 #ifndef PROJECTMAMAN14_HELPERSMETHODS_H
 
+#include "DataStructers.h"
+#include <stdio.h>
+
 int isEmptyLine(char *line);
 int isComment(char *line);
 int isRegister(char *line);
@@ -35,5 +38,8 @@ void convertToBase16(int number);
 int convertToBase2(int number,int size);
 int isValueNumber(char *operand);
 void calculateOffsetAddress(int addressType,int *IC);
+
+
+
 
 #endif //PROJECTMAMAN14_HELPERSMETHODS_H

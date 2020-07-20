@@ -62,6 +62,7 @@ void initMachineMemoryCode() {
     machineCode = (MachineCode *) malloc(sizeof(MachineCode) * machineCodeSize);
     if (machineCode == NULL) {
         printf("[ERROR] Machine code allocation fail\n");
+        return;
     } else {
         printf("[INFO] Machine code allocated successfully\n");
     }
@@ -93,13 +94,14 @@ convertInstructionToMachineCode(int opcode, int funct, int sourceOperand, int so
     codeBlock.data.instructions.destAddress = destAddressType;
     codeBlock.are = absolute;
     machineCode[machineCodeSize - 1] = codeBlock;
-
+    machineCodeSize++;
     return codeBlock;
 }
 
 MachineCode convertExtraValueToMachineCode(int value, int addressType, int isLabelExternal) {
     if (machineCode == NULL) {
         initMachineMemoryCode();
+
     } else {
         machineCode = resizeMachineMemoryCode();
     }
@@ -115,6 +117,9 @@ MachineCode convertExtraValueToMachineCode(int value, int addressType, int isLab
 
         }
     }
+    machineCode[machineCodeSize - 1] = extraWord;
+    machineCodeSize++;
+    return extraWord;
 
 }
 

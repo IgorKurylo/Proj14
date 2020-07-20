@@ -2,12 +2,10 @@
 // Created by Igork on 13/06/2020.
 //
 
-#include "DataStructers.h"
 #include "HelpersMethods.h"
 #include "SymbolTable.h"
 #include <stdio.h>
-#include <stdlib.h>
-
+#include "FileMethods.h"
 void addSymbolInTable(char *label, int type, int address, int lineNumber, int *errorCounter) {
     SymbolTable row = {};
     int result = 0;

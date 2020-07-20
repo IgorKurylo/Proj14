@@ -3,10 +3,11 @@
 #include "FileMethods.h"
 #include "FirstAsm.h"
 #include "SymbolTable.h"
-
+#include "MemorySnapShot.h"
 SymbolTable *table;
 int tableSize;
-
+MachineCode *machineCode;
+int machineCodeSize;
 int main(int argc, char *argv[]) {
 
     int numberOfFiles = argc, fileLines = 0, i = 0, index = 0, IC = 0, DC = 0, ICF = 0, DCF = 0, errorsFirstRead = 0;
@@ -39,11 +40,11 @@ int main(int argc, char *argv[]) {
             printf("%5s\t%3s\t\t%5s\n", "LABEL", "ADDRESS", "TYPE");
             printf("======================== \n");
             for (i = 0; i < tableSize; i++) {
-
                 printf("%5s\t%3d\t\t%5s\n", table[i].name, table[i].address,
                        table[i].type == symbol_code ? "code" : table[i].is_extern ? "external" : "data");
             }
 
+            printf("Machine Code Size %d",machineCodeSize);
             printf("Instructor Counter %d\n", IC);
             printf("Data Counter %d\n", DC);
 
