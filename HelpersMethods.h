@@ -29,7 +29,7 @@ void createMachineCode(char *firstOp, HashMap *commandObj, int destAddressType, 
                   int *destExtraWord, int destOperand);
 void createMachineCode2(char *command, HashMap *commandObj, int sourceAddressType, int destAddressType, int *valueSrc,
                    int *valueDest, int operandTypeSrc, int operandTypeDest, int destOperand, int srcOperand);
-int isEntryDirective(char *line);
+int isEntryDirective(char *line,char **labelEntry);
 int checkIsDirective(char *line, const char *originalLine, char *finalDirective, int *counter,const char *type);
 void extractOperand(char *line, char **label, char *originalLine, int counter);
 

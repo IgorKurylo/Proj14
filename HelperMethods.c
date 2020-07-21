@@ -192,11 +192,13 @@ int validateCommandAddressType(char *command, int addressTypeSrc, int addressTyp
             case 13: //prn
                 return (addressTypeDest == IMMEDIATE_ADDRESSING || addressTypeDest == DIRECT_ADDRESSING ||
                         addressTypeDest == REG_ADDRESSING);
-                break;
+
             case 14: //rts
             case 15: //stop
                 return addressTypeDest == -1 || addressTypeSrc == -1;
 
+            default:
+                break;
         }
     }
 }
@@ -626,19 +628,24 @@ int checkIsDirective(char *line, const char *originalLine, char *finalDirective,
     }
 }
 
-int isEntryDirective(char *line) {
+int isEntryDirective(char *line,char **labelEntry) {
 
     char *originalLine, *directiveStatement, *finalDirective = NULL;
     int counter = 0;
     if (strchr(line, '.')) {
         originalLine = line;
-        return checkIsDirective(line, originalLine, finalDirective, &counter, ENTRY);
+        if(checkIsDirective(line, originalLine, finalDirective, &counter, ENTRY)){
+            extractOperand(line,labelEntry,originalLine,counter);
+        }
     } else {
         directiveStatement = skipLabel(line);
         directiveStatement = skipWhitesSpaces(directiveStatement);
         originalLine = directiveStatement;
         if (strchr(directiveStatement, '.')) {
-            return checkIsDirective(directiveStatement, originalLine, finalDirective, &counter, ENTRY);
+            if(checkIsDirective(directiveStatement, originalLine, finalDirective, &counter, ENTRY)){
+                extractOperand(line,labelEntry,originalLine,counter);
+
+            }
         }
     }
     return 0;

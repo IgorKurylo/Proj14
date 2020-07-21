@@ -6,6 +6,7 @@
 #include "SymbolTable.h"
 #include <stdio.h>
 #include "FileMethods.h"
+
 void addSymbolInTable(char *label, int type, int address, int lineNumber, int *errorCounter) {
     SymbolTable row = {};
     int result = 0;
