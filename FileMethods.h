@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "Constanst.h"
+#include "MemorySnapShot.h"
+#include "SymbolTable.h"
 
 #ifndef PROJECTMAMAN14_FILEMETHODS_H
 
@@ -15,11 +17,23 @@ typedef struct {
     int isLabel;
 } AsmFileContent;
 
+#define OBJECT_FILE ".ob"
+#define ENTRY_FILE ".ent"
+#define EXTERNAL_FILE ".ext"
 
 
-FILE * readFile(char *fileName);
-//int writeFile(char *buffer);
-AsmFileContent *fileContent(FILE *file,int *fileLines);
+FILE *readFile(char *fileName);
 
+FILE *openFile(char *fileName, char *fileExtension);
+
+AsmFileContent *fileContent(FILE *file, int *fileLines);
+
+void writeFile(FILE *file, char *buffer, char *format);
+
+void writeMachineCodeFile(int IC, int DC, MachineCode *machineCode);
+
+void writeEntryFile(SymbolTable *table, int tableSize, char *fileName);
+
+void writeExternFile(SymbolTable *table, int tableSize, char *fileName);
 
 #endif //PROJECTMAMAN14_FILEMETHODS_H

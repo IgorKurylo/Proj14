@@ -2,15 +2,18 @@
 #include <stdlib.h>
 #include "FileMethods.h"
 #include "FirstAsm.h"
+#include "SecondAsm.h"
 #include "SymbolTable.h"
 #include "MemorySnapShot.h"
+
 SymbolTable *table;
 int tableSize;
 MachineCode *machineCode;
 int machineCodeSize;
+
 int main(int argc, char *argv[]) {
 
-    int numberOfFiles = argc, fileLines = 0, i = 0, index = 0, IC = 0, DC = 0, ICF = 0, DCF = 0, errorsFirstRead = 0;
+    int numberOfFiles = argc, fileLines = 0, i = 0, index = 0, IC = 0, DC = 0, ICF = 0, DCF = 0, errorsFirstRead = 0, errorSecondRead = 0;
     char *labelName = NULL;
     AsmFileContent *asmContentFile = NULL;
     FILE *file = NULL;
@@ -30,9 +33,20 @@ int main(int argc, char *argv[]) {
                     for (index = 0; index < fileLines; index++) {
                         errorsFirstRead += firstRead(asmContentFile[index], &IC, &DC, index);
                     }
-                    ICF = IC;
-                    DCF = DC;
-                    //TODO: update symbol table
+                    if (errorsFirstRead > 0) {
+                        printf("Errors found %d\n", errorsFirstRead);
+                        printf("See all errors messages and warnings ,fix and run again\n");
+                        exit(-1);
+                    } else {
+                        ICF = IC;
+                        DCF = DC;
+                        // update symbol table with IC+INIT ADDRESS = (100)
+                        updateSymbolTable((INIT_ADDRESS + IC));
+                    }
+                    for (index = 0; index < fileLines; index++) {
+                        errorSecondRead += secondRead(asmContentFile[index], &IC, index + 1);
+                    }
+
                 }
             }
         }
@@ -44,7 +58,7 @@ int main(int argc, char *argv[]) {
                        table[i].type == symbol_code ? "code" : table[i].is_extern ? "external" : "data");
             }
 
-            printf("Machine Code Size %d",machineCodeSize);
+            printf("Machine Code Size %d", machineCodeSize);
             printf("Instructor Counter %d\n", IC);
             printf("Data Counter %d\n", DC);
 

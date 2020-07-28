@@ -36,7 +36,8 @@ SymbolTable *allocateTable() {
 
 int addSymbol(SymbolTable row, int lineNumber) {
 
-    if (!checkIfSymbolExists(row.name, lineNumber)) {
+    // check if a symbol exists or not in the table, if not we update table size and add row to table.
+    if (checkIfSymbolExists(row.name, lineNumber)==-1)  {
         tableSize++;
         table = (SymbolTable *) realloc(table, sizeof(SymbolTable) * tableSize);
         if (table != NULL) {
@@ -56,10 +57,10 @@ int checkIfSymbolExists(char *symbolName, int lineNumber) {
     for (i = 0; i < tableSize; i++) {
         if (strcmp(symbolName, table[i].name) == 0) {
             printf("[ERROR] line %d: Symbol %s is exists \n", lineNumber, symbolName);
-            return 1;
+            return i; // return the index in array of the symbol
         }
     }
-    return 0;
+    return -1;
 }
 
 void updateSymbolTable(int IC) {
@@ -69,5 +70,18 @@ void updateSymbolTable(int IC) {
             table[i].address += IC;
         }
     }
+}
+
+void updateIsEntrySymbol(int index) {
+    table[index].is_entry = 1;
+}
+
+void freeTable() {
+    if (table != NULL) {
+        free(table);
+        tableSize = 0;
+    }
+
+
 }
 

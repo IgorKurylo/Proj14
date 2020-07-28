@@ -27,6 +27,7 @@ typedef struct {
 } MachineCode;
 
 
+
 extern int dataSnapShotMemory[MAX_DATA];
 extern int dataSize;
 extern MachineCode *machineCode;

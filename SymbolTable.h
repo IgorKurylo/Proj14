@@ -26,6 +26,7 @@ extern int tableSize;
 SymbolTable *allocateTable();
 int addSymbol(SymbolTable row,int currentIndex);
 int checkIfSymbolExists(char *symbolName,int lineNumber);
+void updateIsEntrySymbol(int index);
 void updateSymbolTable(int IC);
 void freeTable();
 
