@@ -40,6 +40,9 @@ int isValueNumber(char *operand);
 void calculateOffsetAddress(int addressType,int *IC);
 
 
+void parseOneOperand(char *operands, char **oneOperand);
+void parseTwoOperands(char *operands, char **firstOperand, char **secondOperand);
+
 
 
 #endif //PROJECTMAMAN14_HELPERSMETHODS_H

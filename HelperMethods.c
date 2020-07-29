@@ -370,7 +370,7 @@ void createMachineCode(char *firstOp, HashMap *commandObj, int destAddressType, 
         switch (operandTypeDest) {
             case REGISTER_TYPE: // REGISTER TYPE
                 destOperand = isRegister(firstOp);
-                convertInstructionToMachineCode((*commandObj).value.opCode, (*commandObj).value.opCode, 0, 0,
+                convertInstructionToMachineCode((*commandObj).value.opCode, (*commandObj).value.funct, 0, 0,
                                                 destOperand,
                                                 destAddressType);
                 break;
@@ -380,7 +380,8 @@ void createMachineCode(char *firstOp, HashMap *commandObj, int destAddressType, 
                 break;
             case LABEL_TYPE: // LABEL TYPE
                 destExtraWord = 0;
-                convertExtraValueToMachineCode(0, operandTypeDest, -1);
+                // add ascii code of symbol ?  in label type
+                convertExtraValueToMachineCode((int) '?', operandTypeDest, -1);
                 break;
             default:
                 break;
@@ -399,20 +400,20 @@ void createMachineCode2(char *command, HashMap *commandObj, int sourceAddressTyp
                                             sourceAddressType, destOperand,
                                             destAddressType);
         }
-        if (operandTypeDest == REGISTER_TYPE || operandTypeSrc == REGISTER_TYPE) {
-            convertInstructionToMachineCode((*commandObj).value.opCode, (*commandObj).value.funct, srcOperand,
-                                            sourceAddressType, destOperand,
-                                            destAddressType);
-        }
+
         if (operandTypeSrc == NUMBER_TYPE) {
             convertExtraValueToMachineCode(valueSrc, sourceAddressType, -1);
         }
         if (operandTypeDest == NUMBER_TYPE) {
             convertExtraValueToMachineCode(valueDest, destAddressType, -1);
         }
-        if (operandTypeDest == LABEL_TYPE || operandTypeSrc == LABEL_TYPE) {
+        if(operandTypeSrc == LABEL_TYPE){
+            convertExtraValueToMachineCode(0, operandTypeSrc, -1);
+        }
+        if (operandTypeDest == LABEL_TYPE) {
             convertExtraValueToMachineCode(0, operandTypeDest, -1);
         }
+
     }
 }
 
@@ -628,14 +629,14 @@ int checkIsDirective(char *line, const char *originalLine, char *finalDirective,
     }
 }
 
-int isEntryDirective(char *line,char **labelEntry) {
+int isEntryDirective(char *line, char **labelEntry) {
 
     char *originalLine, *directiveStatement, *finalDirective = NULL;
     int counter = 0;
     if (strchr(line, '.')) {
         originalLine = line;
-        if(checkIsDirective(line, originalLine, finalDirective, &counter, ENTRY)){
-            extractOperand(line,labelEntry,originalLine,counter);
+        if (checkIsDirective(line, originalLine, finalDirective, &counter, ENTRY)) {
+            extractOperand(line, labelEntry, originalLine, counter);
             return 1;
         }
     } else {
@@ -643,8 +644,8 @@ int isEntryDirective(char *line,char **labelEntry) {
         directiveStatement = skipWhitesSpaces(directiveStatement);
         originalLine = directiveStatement;
         if (strchr(directiveStatement, '.')) {
-            if(checkIsDirective(directiveStatement, originalLine, finalDirective, &counter, ENTRY)){
-                extractOperand(line,labelEntry,originalLine,counter);
+            if (checkIsDirective(directiveStatement, originalLine, finalDirective, &counter, ENTRY)) {
+                extractOperand(line, labelEntry, originalLine, counter);
                 return 1;
             }
         }

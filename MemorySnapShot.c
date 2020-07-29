@@ -114,7 +114,6 @@ MachineCode convertExtraValueToMachineCode(int value, int addressType, int isLab
             }
         } else if (addressType == IMMEDIATE_ADDRESSING || addressType == RELATIVE_ADDRESSING) {
             extraWord.are = absolute;
-
         }
     }
     machineCode[machineCodeSize - 1] = extraWord;

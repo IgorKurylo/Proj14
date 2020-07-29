@@ -55,7 +55,11 @@ int main(int argc, char *argv[]) {
             printf("======================== \n");
             for (i = 0; i < tableSize; i++) {
                 printf("%5s\t%3d\t\t%5s\n", table[i].name, table[i].address,
-                       table[i].type == symbol_code ? "code" : table[i].is_extern ? "external" : "data");
+                       (table[i].type == symbol_code && table[i].is_entry) ? "code,entry" :
+                       table[i].type && !table[i].is_entry ? "code" : table[i].is_extern ? "external"
+                                                                                         : table[i].is_entry
+                                                                                           ? "data ,entry"
+                                                                                           : "data");
             }
 
             printf("Machine Code Size %d", machineCodeSize);
