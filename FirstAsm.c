@@ -28,7 +28,7 @@ int firstRead(AsmFileContent asmContentFile, int *IC, int *DC, int lineNumber) {
         return 0;
     }
     //parse if is entry directive and skip this
-    if (isEntryDirective(asmContentFile.line)) {
+    if (isEntryDirective(asmContentFile.line,&labelName)) {
         return 0;
     }
     //parse if is extern directive

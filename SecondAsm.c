@@ -11,6 +11,9 @@ int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
 
     char *labelOperand;
     int errorCounter = 0, directiveType = 0, symbolIndex = 0;
+    if(isComment(asmContentFile.line) || isEmptyLine(asmContentFile.line)){
+        return 0;
+    }
     if (isExternDirective(asmContentFile.line, &labelOperand, &errorCounter)) {
         return errorCounter;
     }
@@ -26,7 +29,6 @@ int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
             printf("[FATAL] line %d: %s symbol not exists in symbol table\n", lineNumber, labelOperand);
             return (++errorCounter);
         }
-        printf("%s", labelOperand);
     }
     //TODO: run and search for label and update the machine code by labels addresses
 

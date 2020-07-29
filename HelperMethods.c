@@ -636,6 +636,7 @@ int isEntryDirective(char *line,char **labelEntry) {
         originalLine = line;
         if(checkIsDirective(line, originalLine, finalDirective, &counter, ENTRY)){
             extractOperand(line,labelEntry,originalLine,counter);
+            return 1;
         }
     } else {
         directiveStatement = skipLabel(line);
@@ -644,7 +645,7 @@ int isEntryDirective(char *line,char **labelEntry) {
         if (strchr(directiveStatement, '.')) {
             if(checkIsDirective(directiveStatement, originalLine, finalDirective, &counter, ENTRY)){
                 extractOperand(line,labelEntry,originalLine,counter);
-
+                return 1;
             }
         }
     }

@@ -14,10 +14,10 @@ SymbolTable *allocateTable() {
     if (table == NULL) {
         table = (SymbolTable *) malloc(sizeof(SymbolTable) * DEFAULT_SYMBOL_TABLE_SIZE);
         if (table != NULL) {
-            printf("[INFO] Symbol Table Allocated Successfully\n");
+            printf("[INFO] Symbol Table allocated successfully\n");
             return table;
         } else {
-            printf("[FATAL] Fail on Symbol Table allocation\n");
+            printf("[FATAL] Fail on symbol Table allocation\n");
             return NULL;
         }
     } else {
