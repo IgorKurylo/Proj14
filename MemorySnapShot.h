@@ -12,6 +12,8 @@ enum ARE {
 };
 typedef struct {
     unsigned int are: 3;
+    int IC:7;
+    int wordLength:2;
     union {
         struct {
             unsigned int funct: 5;
@@ -24,10 +26,6 @@ typedef struct {
         struct {
             unsigned int value: 21;
         } extraWord;
-        struct {
-            int IC;
-            int wordLength;
-        } instructionCounter;
     } data;
 } MachineCode;
 
@@ -45,8 +43,9 @@ convertInstructionToMachineCode(int command, int funct, int sourceOperand, int s
 
 MachineCode convertExtraValueToMachineCode(int value, int addressType, int isLabelExternal);
 
-void updateMachineCode(int IC,int lineNumber,int offset);
+void updateMachineCode(int address,int offset, int IsExternalSymbol);
 
-MachineCode getInstructionCounter(int lineNumber,int offset);
+MachineCode getInstructionCounter(int offset);
+
 
 #endif //PROJ14_MEMORYSNAPSHOT_H

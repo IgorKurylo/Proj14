@@ -93,8 +93,8 @@ convertInstructionToMachineCode(int opcode, int funct, int sourceOperand, int so
     codeBlock.data.instructions.destRegister = destOperand;
     codeBlock.data.instructions.destAddress = destAddressType;
     codeBlock.are = absolute;
-    codeBlock.data.instructionCounter.IC = IC;
-    codeBlock.data.instructionCounter.wordLength = wordLength;
+    codeBlock.IC = IC;
+    codeBlock.wordLength = wordLength;
     machineCode[machineCodeSize - 1] = codeBlock;
     machineCodeSize++;
     return codeBlock;
@@ -107,29 +107,37 @@ MachineCode convertExtraValueToMachineCode(int value, int addressType, int isLab
     } else {
         machineCode = resizeMachineMemoryCode();
     }
-    MachineCode extraWord = {};
-    extraWord.data.extraWord.value = value;
-    if (addressType != -1) {
-        if (addressType == DIRECT_ADDRESSING) {
-            if (isLabelExternal != -1) {
-                extraWord.are = isLabelExternal ? external : relocatable;
+    if (machineCode != NULL) {
+        machineCode[machineCodeSize - 1].data.extraWord.value = value;
+        if (addressType != -1) {
+            if (addressType == DIRECT_ADDRESSING) {
+                if (isLabelExternal != -1) {
+                    machineCode[machineCodeSize - 1].are = isLabelExternal ? external : relocatable;
+                }
+            } else if (addressType == IMMEDIATE_ADDRESSING || addressType == RELATIVE_ADDRESSING) {
+                machineCode[machineCodeSize - 1].are = absolute;
             }
-        } else if (addressType == IMMEDIATE_ADDRESSING || addressType == RELATIVE_ADDRESSING) {
-            extraWord.are = absolute;
         }
     }
-    machineCode[machineCodeSize - 1] = extraWord;
-    machineCodeSize++;
-    return extraWord;
+
+    return machineCode[(machineCodeSize++) - 1];
 
 }
 
-MachineCode instructionCounter(int lineNumber, int offset) {
-    MachineCode instructionCounter = machineCode[(lineNumber - 1) + offset];
-    if (instructionCounter.data.instructionCounter.wordLength != 0 &&
-        instructionCounter.data.instructionCounter.IC != 0) {
+MachineCode getInstructionCounter(int address) {
+    MachineCode instructionCounter = machineCode[address];
+    if (instructionCounter.wordLength != 0 &&
+        instructionCounter.IC != 0) {
         return instructionCounter;
     }
+    return instructionCounter;
 }
 
+void updateMachineCode(int address, int offset, int IsExternalSymbol) {
+    machineCode[offset].data.extraWord.value = address;
+    if (IsExternalSymbol) {
+        machineCode[offset].are = external;
+    }
 
+
+}

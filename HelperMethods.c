@@ -392,13 +392,19 @@ void createMachineCode(char *firstOp, HashMap *commandObj, int destAddressType, 
 }
 
 void createMachineCode2(char *command, HashMap *commandObj, int sourceAddressType, int destAddressType, int valueSrc,
-                        int valueDest, int operandTypeSrc, int operandTypeDest, int destOperand, int srcOperand,int IC,int wordLength) {
+                        int valueDest, int operandTypeSrc, int operandTypeDest, int destOperand, int srcOperand, int IC,
+                        int wordLength) {
     (*commandObj) = commandOpCode_functCode(command);
     if ((*commandObj).key != NULL) {
         if (operandTypeDest == REGISTER_TYPE && operandTypeSrc == REGISTER_TYPE) {
             convertInstructionToMachineCode((*commandObj).value.opCode, (*commandObj).value.funct, srcOperand,
                                             sourceAddressType, destOperand,
-                                            destAddressType,IC,wordLength);
+                                            destAddressType, IC, wordLength);
+        }
+        if (operandTypeDest == REGISTER_TYPE || operandTypeSrc == REGISTER_TYPE) {
+            convertInstructionToMachineCode((*commandObj).value.opCode, (*commandObj).value.funct, srcOperand,
+                                            sourceAddressType, destOperand,
+                                            destAddressType, IC, wordLength);
         }
 
         if (operandTypeSrc == NUMBER_TYPE) {
@@ -434,7 +440,7 @@ int parseOperands(char *operands, char *command, int numOfOperand, int lineNumbe
             }
             commandObj = commandOpCode_functCode(command);
             if (commandObj.key != NULL) {
-                convertInstructionToMachineCode(commandObj.value.opCode, commandObj.value.funct, 0, 0, 0, 0,*IC,0);
+                convertInstructionToMachineCode(commandObj.value.opCode, commandObj.value.funct, 0, 0, 0, 0, *IC, 0);
             }
             return 1;
         case 1:
@@ -475,7 +481,7 @@ int parseOperands(char *operands, char *command, int numOfOperand, int lineNumbe
             }
             commandObj = commandOpCode_functCode(command);
             createMachineCode(firstOp, &commandObj, destAddressType, valueDest, operandTypeDest, destExtraWord,
-                              destOperand,*IC,destOffset);
+                              destOperand, *IC, destOffset);
             *IC += destOffset + 1;
 
             return 1;
@@ -539,10 +545,10 @@ int parseOperands(char *operands, char *command, int numOfOperand, int lineNumbe
                 destOperand = isRegister(secondOp);
                 sourceAddressType = 0;
             }
-            countOfWord=srcOffset+destOffset;
+            countOfWord = srcOffset + destOffset;
             createMachineCode2(command, &commandObj, sourceAddressType, destAddressType, valueSrc, valueDest,
                                operandTypeSrc, operandTypeDest,
-                               destOperand, srcOperand,*IC,countOfWord);
+                               destOperand, srcOperand, *IC, countOfWord);
             *IC += srcOffset + destOffset + 1;
             return 1;
         default:

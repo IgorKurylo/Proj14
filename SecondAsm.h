@@ -8,4 +8,4 @@
 
 #endif //PROJ14_SECONDASM_H
 
-int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber);
+int secondRead(AsmFileContent asmContentFile,int *addressInstructionIndex, int *IC, int lineNumber);

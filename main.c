@@ -13,7 +13,7 @@ int machineCodeSize;
 
 int main(int argc, char *argv[]) {
 
-    int numberOfFiles = argc, fileLines = 0, i = 0, index = 0, IC = 0, DC = 0, ICF = 0, DCF = 0, errorsFirstRead = 0, errorSecondRead = 0;
+    int numberOfFiles = argc, fileLines = 0, i = 0, index = 0, IC = 0, DC = 0, ICF = 0, DCF = 0, errorsFirstRead = 0, errorSecondRead = 0,indexInstruction=0;
     char *labelName = NULL;
     AsmFileContent *asmContentFile = NULL;
     FILE *file = NULL;
@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
                         updateSymbolTable((INIT_ADDRESS + IC));
                     }
                     for (index = 0; index < fileLines; index++) {
-                        errorSecondRead += secondRead(asmContentFile[index], &IC, index + 1);
+                        errorSecondRead += secondRead(asmContentFile[index],&indexInstruction, &IC, index + 1);
                     }
 
                 }
