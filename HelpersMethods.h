@@ -37,7 +37,7 @@ int isNumber(const char *str);
 void convertToBase16(int number);
 int convertToBase2(int number,int size);
 int isValueNumber(char *operand);
-void calculateOffsetAddress(int addressType,int *IC);
+int calculateOffsetAddress(int addressType);
 
 
 void parseOneOperand(char *operands, char **oneOperand);

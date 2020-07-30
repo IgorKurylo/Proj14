@@ -79,7 +79,7 @@ MachineCode *resizeMachineMemoryCode() {
 
 MachineCode
 convertInstructionToMachineCode(int opcode, int funct, int sourceOperand, int sourceAddressType, int destOperand,
-                                int destAddressType) {
+                                int destAddressType, int IC, int wordLength) {
     if (machineCode == NULL) {
         initMachineMemoryCode();
     } else {
@@ -93,6 +93,8 @@ convertInstructionToMachineCode(int opcode, int funct, int sourceOperand, int so
     codeBlock.data.instructions.destRegister = destOperand;
     codeBlock.data.instructions.destAddress = destAddressType;
     codeBlock.are = absolute;
+    codeBlock.data.instructionCounter.IC = IC;
+    codeBlock.data.instructionCounter.wordLength = wordLength;
     machineCode[machineCodeSize - 1] = codeBlock;
     machineCodeSize++;
     return codeBlock;
@@ -120,6 +122,14 @@ MachineCode convertExtraValueToMachineCode(int value, int addressType, int isLab
     machineCodeSize++;
     return extraWord;
 
+}
+
+MachineCode instructionCounter(int lineNumber, int offset) {
+    MachineCode instructionCounter = machineCode[(lineNumber - 1) + offset];
+    if (instructionCounter.data.instructionCounter.wordLength != 0 &&
+        instructionCounter.data.instructionCounter.IC != 0) {
+        return instructionCounter;
+    }
 }
 
 

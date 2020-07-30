@@ -5,18 +5,19 @@
 #include "FileMethods.h"
 #include "HelpersMethods.h"
 #include "SymbolTable.h"
+#include "MemorySnapShot.h"
 
 // second read of the asm file
 int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
 
     char *labelOperand, *command, *operands, *firstOperand, *secondOperand;
-    int errorCounter = 0, directiveType = 0, symbolIndex = 0, numOfOperands = 0,isExternLabel=0;
+    int errorCounter = 0, directiveType = 0, symbolIndex = 0, numOfOperands = 0, isExternLabel = 0, destAddressType = -1, srcAddressType = -1, operandType = -1, destOffset = 0, srcOffset = 0;
     SymbolTable row;
+    MachineCode instructionCounter;
     if (isComment(asmContentFile.line) || isEmptyLine(asmContentFile.line)) {
         return 0;
     }
     if (isExternDirective(asmContentFile.line, &labelOperand, &errorCounter)) {
-        isExternLabel=1;
         return errorCounter;
     }
     if (parseDirective(asmContentFile.line, &labelOperand, lineNumber, &directiveType, &errorCounter)) {
@@ -38,41 +39,56 @@ int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
             case 1:
                 parseOneOperand(operands, &firstOperand);
                 if (firstOperand != NULL) {
-                    symbolIndex = checkIfSymbolExists(firstOperand, lineNumber);
-                    if (symbolIndex != -1) {
-                        row=getTableRow(symbolIndex);
-                        if(row.is_extern){
-                            //TODO need to update the address
-                        }
+                    if (validateOperand(firstOperand, &destAddressType, lineNumber, &errorCounter, 0, &operandType)) {
+                        symbolIndex = checkIfSymbolExists(firstOperand, lineNumber);
+                        if (symbolIndex != -1) {
+                            destOffset = calculateOffsetAddress(destAddressType);
+                            row = getTableRow(symbolIndex);
+                            if (row.is_extern) {
+                                instructionCounter = getInstructionCounter(lineNumber, destOffset);
+                                row.address = INIT_ADDRESS + instructionCounter.data.instructionCounter.IC +
+                                              instructionCounter.data.instructionCounter.wordLength;
 
-                    } else {
-                        printf("[ERROR] line %d: %s symbol not exists in table\n", lineNumber, firstOperand);
+                            }
+                        } else {
+                            printf("[ERROR] line %d: %s symbol not exists in table\n", lineNumber, firstOperand);
+                        }
                     }
                 }
                 break;
 
             case 2:
-                parseTwoOperands(operands,&firstOperand,&secondOperand);
-                if (isAlphaNumeric(firstOperand)){
-                    symbolIndex = checkIfSymbolExists(firstOperand, lineNumber);
-                    if(symbolIndex!=-1){
-                        row=getTableRow(symbolIndex);
-                        if(row.is_extern){
-                            //TODO need to update the address
+                parseTwoOperands(operands, &firstOperand, &secondOperand);
+                if (firstOperand != NULL) {
+                    if (validateOperand(firstOperand, &srcAddressType, lineNumber, &errorCounter, 0, &operandType)) {
+                        symbolIndex = checkIfSymbolExists(firstOperand, lineNumber);
+                        if (symbolIndex != -1) {
+                            destOffset = calculateOffsetAddress(srcAddressType);
+                            row = getTableRow(symbolIndex);
+                            if (row.is_extern) {
+                                instructionCounter = getInstructionCounter(lineNumber, destOffset);
+                                row.address = INIT_ADDRESS + instructionCounter.data.instructionCounter.IC +
+                                              instructionCounter.data.instructionCounter.wordLength;
+                            }
+                        } else {
+                            printf("[ERROR] line %d: %s symbol not exists in table\n", lineNumber, firstOperand);
                         }
-                    }else{
-                        printf("[ERROR] line %d: %s symbol not exists in table\n", lineNumber, firstOperand);
                     }
                 }
-                else if (isAlphaNumeric(secondOperand)){
-                    symbolIndex = checkIfSymbolExists(firstOperand, lineNumber);
-                    if(symbolIndex!=-1){
-                        row=getTableRow(symbolIndex);
-                        if(row.is_extern){
-                            //TODO need to update the address
+                if (secondOperand != NULL) {
+                    if (validateOperand(secondOperand, &destAddressType, lineNumber, &errorCounter, 0, &operandType)) {
+                        symbolIndex = checkIfSymbolExists(firstOperand, lineNumber);
+                        if (symbolIndex != -1) {
+                            destOffset = calculateOffsetAddress(destAddressType);
+                            row = getTableRow(symbolIndex);
+                            if (row.is_extern) {
+                                instructionCounter = getInstructionCounter(lineNumber, destOffset);
+                                row.address = INIT_ADDRESS + instructionCounter.data.instructionCounter.IC +
+                                              instructionCounter.data.instructionCounter.wordLength;
+                            }
+                        } else {
+                            printf("[ERROR] line %d: %s symbol not exists in table\n", lineNumber, firstOperand);
                         }
-                    }else{
-                        printf("[ERROR] line %d: %s symbol not exists in table\n", lineNumber, firstOperand);
                     }
                 }
                 break;
@@ -80,7 +96,6 @@ int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
                 break;
         }
     }
-    //TODO: run and search for label and update the machine code by labels addresses
 
     return errorCounter;
 

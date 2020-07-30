@@ -3,7 +3,6 @@
 //
 
 #ifndef PROJECTMAMAN14_CONSTANST_H
-#define NO_ERROR "NO ERROR"
 #define DELIM ","
 #define MAX_LINE_SIZE 80
 #define MAX_LINES_FILE 100
@@ -11,14 +10,8 @@
 #define MAX_SYMBOL_SIZE 31
 #define MAX_DATA 256
 #define MEMORY_WORD_SIZE 24
-#define ERROR "ERROR"
-#define TRUE 1
-#define FALSE 0
-#define FAIL 0
-#define SUCCESS  1
 #define NUMBER_OF_COMMANDS 16
 #define NUMBER_OF_REGISTERS 8
-#define COMMAND_SIZE 3
 #define IMMEDIATE_ADDRESSING 0
 #define DIRECT_ADDRESSING 1
 #define RELATIVE_ADDRESSING 2

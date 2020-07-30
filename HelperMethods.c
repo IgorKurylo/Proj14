@@ -364,7 +364,7 @@ int isJmpCommand(char *command) {
 
 
 void createMachineCode(char *firstOp, HashMap *commandObj, int destAddressType, int valueDest, int operandTypeDest,
-                       int destExtraWord, int destOperand) {
+                       int destExtraWord, int destOperand, int IC, int wordLength) {
     if ((*commandObj).key != NULL) {
 
         switch (operandTypeDest) {
@@ -372,10 +372,10 @@ void createMachineCode(char *firstOp, HashMap *commandObj, int destAddressType, 
                 destOperand = isRegister(firstOp);
                 convertInstructionToMachineCode((*commandObj).value.opCode, (*commandObj).value.funct, 0, 0,
                                                 destOperand,
-                                                destAddressType);
+                                                destAddressType, IC, wordLength);
                 break;
             case NUMBER_TYPE: // NUMBER TYPE
-                (destExtraWord) = valueDest;
+                (destExtraWord) = valueDest; // convert to binary
                 convertExtraValueToMachineCode(destExtraWord, operandTypeDest, -1);
                 break;
             case LABEL_TYPE: // LABEL TYPE
@@ -392,13 +392,13 @@ void createMachineCode(char *firstOp, HashMap *commandObj, int destAddressType, 
 }
 
 void createMachineCode2(char *command, HashMap *commandObj, int sourceAddressType, int destAddressType, int valueSrc,
-                        int valueDest, int operandTypeSrc, int operandTypeDest, int destOperand, int srcOperand) {
+                        int valueDest, int operandTypeSrc, int operandTypeDest, int destOperand, int srcOperand,int IC,int wordLength) {
     (*commandObj) = commandOpCode_functCode(command);
     if ((*commandObj).key != NULL) {
         if (operandTypeDest == REGISTER_TYPE && operandTypeSrc == REGISTER_TYPE) {
             convertInstructionToMachineCode((*commandObj).value.opCode, (*commandObj).value.funct, srcOperand,
                                             sourceAddressType, destOperand,
-                                            destAddressType);
+                                            destAddressType,IC,wordLength);
         }
 
         if (operandTypeSrc == NUMBER_TYPE) {
@@ -407,7 +407,7 @@ void createMachineCode2(char *command, HashMap *commandObj, int sourceAddressTyp
         if (operandTypeDest == NUMBER_TYPE) {
             convertExtraValueToMachineCode(valueDest, destAddressType, -1);
         }
-        if(operandTypeSrc == LABEL_TYPE){
+        if (operandTypeSrc == LABEL_TYPE) {
             convertExtraValueToMachineCode(0, operandTypeSrc, -1);
         }
         if (operandTypeDest == LABEL_TYPE) {
@@ -422,8 +422,9 @@ int parseOperands(char *operands, char *command, int numOfOperand, int lineNumbe
     HashMap commandObj;
     int sourceAddressType = -1, destAddressType = -1, srcOffset = 0, destOffset = 0, valueSrc = 0, valueDest = 0;
     int operandTypeSrc = -1, operandTypeDest = -1; // 0 REGISTER, 1 NUMBER, 2 LABEL
-    int destExtraWord = 0, srcExtraWord = 0;
-    int destOperand = 0, srcOperand = 0;
+    int destExtraWord = 0, destOperand = 0, srcOperand = 0;
+    int countOfWord = 0;
+
     switch (numOfOperand) {
         case 0:
             ++(*IC);
@@ -433,7 +434,7 @@ int parseOperands(char *operands, char *command, int numOfOperand, int lineNumbe
             }
             commandObj = commandOpCode_functCode(command);
             if (commandObj.key != NULL) {
-                convertInstructionToMachineCode(commandObj.value.opCode, commandObj.value.funct, 0, 0, 0, 0);
+                convertInstructionToMachineCode(commandObj.value.opCode, commandObj.value.funct, 0, 0, 0, 0,*IC,0);
             }
             return 1;
         case 1:
@@ -467,13 +468,14 @@ int parseOperands(char *operands, char *command, int numOfOperand, int lineNumbe
                     printf("[ERROR] line %d: Command %s must have %d operands \n", lineNumber, command, numOfOperand);
                     (*errorCounter)++;
                 }
-                commandObj = commandOpCode_functCode(command);
-                createMachineCode(firstOp, &commandObj, destAddressType, valueDest, operandTypeDest, destExtraWord,
-                                  destOperand);
+
             }
             if (destAddressType == REG_ADDRESSING) {
                 destOffset = 0;
             }
+            commandObj = commandOpCode_functCode(command);
+            createMachineCode(firstOp, &commandObj, destAddressType, valueDest, operandTypeDest, destExtraWord,
+                              destOperand,*IC,destOffset);
             *IC += destOffset + 1;
 
             return 1;
@@ -524,7 +526,8 @@ int parseOperands(char *operands, char *command, int numOfOperand, int lineNumbe
             } else if (sourceAddressType != REG_ADDRESSING && destAddressType == REG_ADDRESSING) {
                 destOffset = 0;
             }
-            *IC += srcOffset + destOffset + 1;
+
+
             if (operandTypeDest == REGISTER_TYPE && operandTypeSrc == REGISTER_TYPE) {
                 destOperand = isRegister(firstOp);
                 srcOperand = isRegister(secondOp);
@@ -536,10 +539,11 @@ int parseOperands(char *operands, char *command, int numOfOperand, int lineNumbe
                 destOperand = isRegister(secondOp);
                 sourceAddressType = 0;
             }
-
+            countOfWord=srcOffset+destOffset;
             createMachineCode2(command, &commandObj, sourceAddressType, destAddressType, valueSrc, valueDest,
                                operandTypeSrc, operandTypeDest,
-                               destOperand, srcOperand);
+                               destOperand, srcOperand,*IC,countOfWord);
+            *IC += srcOffset + destOffset + 1;
             return 1;
         default:
             break;
