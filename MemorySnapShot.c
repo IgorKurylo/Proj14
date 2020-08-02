@@ -29,7 +29,7 @@ saveToSnapShotMemory(char *data, int directiveType, int *DC, int *deltaCounter, 
             while (numberStr) {
                 if (numberValidation(numberStr, &value, lineNumber, errorCounter)) {
                     dataSnapShotMemory[counterOfData] = value;
-                    convertExtraValueToMachineCode(value, -1, -1);
+                    //addDataToMachineCode(value);
                     ++counterOfData;
                     numberStr = strtok(NULL, DELIM);
                 }
@@ -40,7 +40,7 @@ saveToSnapShotMemory(char *data, int directiveType, int *DC, int *deltaCounter, 
             if (stringValidation(&data, lineNumber, errorCounter)) {
                 while (i <= strlen(data)) {
                     dataSnapShotMemory[counterOfData] = (int) data[i];
-                    convertExtraValueToMachineCode(dataSnapShotMemory[counterOfData], -1, -1);
+                    //addDataToMachineCode(dataSnapShotMemory[counterOfData]);
                     ++counterOfData;
                     i++;
 
@@ -70,74 +70,82 @@ void initMachineMemoryCode() {
 
 MachineCode *resizeMachineMemoryCode() {
     MachineCode *machineCodeTemp;
-    machineCodeTemp = (MachineCode *) realloc(machineCode, sizeof(MachineCode) * (machineCodeSize + 1));
+    machineCodeSize++;
+    machineCodeTemp = (MachineCode *) realloc(machineCode, sizeof(MachineCode) * (machineCodeSize));
     if (machineCodeTemp != NULL) {
         machineCode = machineCodeTemp;
     }
     return machineCode;
 }
 
-MachineCode
-convertInstructionToMachineCode(int opcode, int funct, int sourceOperand, int sourceAddressType, int destOperand,
-                                int destAddressType, int IC, int wordLength) {
+MachineCode *
+convertInstructionToMachineCode(unsigned int opcode, unsigned int funct, unsigned int sourceOperand,
+                                unsigned int sourceAddressType, unsigned int destOperand,
+                                unsigned int destAddressType, int IC, int wordLength) {
+    int index=machineCodeSize-1;
     if (machineCode == NULL) {
         initMachineMemoryCode();
     } else {
         machineCode = resizeMachineMemoryCode();
     }
-    MachineCode codeBlock = {};
-    codeBlock.data.instructions.opCode = opcode;
-    codeBlock.data.instructions.funct = funct;
-    codeBlock.data.instructions.srcRegister = sourceOperand;
-    codeBlock.data.instructions.srcAddress = sourceAddressType;
-    codeBlock.data.instructions.destRegister = destOperand;
-    codeBlock.data.instructions.destAddress = destAddressType;
-    codeBlock.are = absolute;
-    codeBlock.IC = IC;
-    codeBlock.wordLength = wordLength;
-    machineCode[machineCodeSize - 1] = codeBlock;
-    machineCodeSize++;
-    return codeBlock;
+
+    machineCode[index].data.instructions.opCode = opcode;
+    machineCode[index].data.instructions.funct = funct;
+    machineCode[index].data.instructions.srcRegister = sourceOperand;
+    machineCode[index].data.instructions.srcAddress = sourceAddressType;
+    machineCode[index].data.instructions.destRegister = destOperand;
+    machineCode[index].data.instructions.destAddress = destAddressType;
+    machineCode[index].are = absolute;
+    machineCode[index].IC = IC;
+    machineCode[index].wordLength = wordLength;
+    //machineCode[machineCodeSize - 1].data.extraWord.value = 0; // init extra world to 0
+
+    return &machineCode[machineCodeSize];
 }
 
-MachineCode convertExtraValueToMachineCode(int value, int addressType, int isLabelExternal) {
-    if (machineCode == NULL) {
-        initMachineMemoryCode();
+MachineCode *
+convertExtraValueToMachineCode(MachineCode *code, int index, unsigned int value, unsigned int addressType,
+                               int isLabelExternal) {
 
-    } else {
-        machineCode = resizeMachineMemoryCode();
-    }
-    if (machineCode != NULL) {
-        machineCode[machineCodeSize - 1].data.extraWord.value = value;
+    if (machineCode != NULL && code != NULL) {
+        (*code).extraWordValue = value;
         if (addressType != -1) {
             if (addressType == DIRECT_ADDRESSING) {
                 if (isLabelExternal != -1) {
-                    machineCode[machineCodeSize - 1].are = isLabelExternal ? external : relocatable;
+                    (*code).are = isLabelExternal ? external : relocatable;
                 }
             } else if (addressType == IMMEDIATE_ADDRESSING || addressType == RELATIVE_ADDRESSING) {
-                machineCode[machineCodeSize - 1].are = absolute;
+                (*code).are = absolute;
             }
+            machineCode[index] = *code;
         }
     }
+    return &machineCode[index];
 
-    return machineCode[(machineCodeSize++) - 1];
+}
+
+void addDataToMachineCode(unsigned int value) {
+    if (machineCode == NULL) {
+        initMachineMemoryCode();
+    } else {
+        resizeMachineMemoryCode();
+    }
+    if (machineCode != NULL) {
+        MachineCode codeBlockData = {};
+        codeBlockData.extraWordValue = value;
+        machineCode[machineCodeSize-1] = codeBlockData;
+    }
 
 }
 
 MachineCode getInstructionCounter(int address) {
     MachineCode instructionCounter = machineCode[address];
-    if (instructionCounter.wordLength != 0 &&
-        instructionCounter.IC != 0) {
-        return instructionCounter;
-    }
     return instructionCounter;
 }
 
 void updateMachineCode(int address, int offset, int IsExternalSymbol) {
-    machineCode[offset].data.extraWord.value = address;
+    machineCode[offset].extraWordValue = address;
     if (IsExternalSymbol) {
         machineCode[offset].are = external;
     }
-
-
 }

@@ -21,7 +21,7 @@ void addSymbolInTable(char *label, int type, int address, int lineNumber, int *e
 }
 
 int firstRead(AsmFileContent asmContentFile, int *IC, int *DC, int lineNumber) {
-    char *labelName, *command, *directiveData, *operands;
+    char *labelName=NULL, *command=NULL, *directiveData=NULL, *operands=NULL;
     int numberOfLine = lineNumber, directiveType = 0, errorsCounter = 0, rowType = 0, numOfOperands, result = -1;
     SymbolTable row = {};
     if (isComment(asmContentFile.line) || isEmptyLine(asmContentFile.line)) {
@@ -48,7 +48,7 @@ int firstRead(AsmFileContent asmContentFile, int *IC, int *DC, int lineNumber) {
     if (parseDirective(asmContentFile.line, &directiveData, numberOfLine + 1, &directiveType, &errorsCounter)) {
         rowType = symbol_data;
         if (asmContentFile.isLabel) {
-            addSymbolInTable(labelName, rowType, INIT_ADDRESS + *IC + *DC, numberOfLine + 1, &errorsCounter);
+            addSymbolInTable(labelName, rowType, *DC, numberOfLine + 1, &errorsCounter);
         }
         populateDataDirective(DC, directiveType, directiveData, &errorsCounter, numberOfLine + 1);
         return errorsCounter;
@@ -64,7 +64,6 @@ int firstRead(AsmFileContent asmContentFile, int *IC, int *DC, int lineNumber) {
             errorsCounter++;
         }
     }
-
     return errorsCounter;
 
 }

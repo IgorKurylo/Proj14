@@ -56,7 +56,6 @@ int checkIfSymbolExists(char *symbolName, int lineNumber) {
     int i = 0;
     for (i = 0; i < tableSize; i++) {
         if (strcmp(symbolName, table[i].name) == 0) {
-            printf("[ERROR] line %d: Symbol %s is exists \n", lineNumber, symbolName);
             return i; // return the index in array of the symbol
         }
     }
