@@ -373,7 +373,7 @@ void createMachineCode(char *firstOp, HashMap *commandObj, int destAddressType, 
                 destOperand = isRegister(firstOp);
                 code = convertInstructionToMachineCode((*commandObj).value.opCode, (*commandObj).value.funct, 0, 0,
                                                        destOperand,
-                                                       destAddressType, IC, wordLength);
+                                                       destAddressType);
                 break;
 //            case NUMBER_TYPE: // NUMBER TYPE
 //                (destExtraWord) = valueDest; // convert to binary
@@ -384,7 +384,7 @@ void createMachineCode(char *firstOp, HashMap *commandObj, int destAddressType, 
                 destExtraWord = 0;
                 code = convertInstructionToMachineCode((*commandObj).value.opCode, (*commandObj).value.funct, 0, 0,
                                                        destOperand,
-                                                       destAddressType, IC, wordLength);
+                                                       destAddressType);
                 convertExtraValueToMachineCode(code, machineCodeSize - 1, 0, operandTypeDest, -1);
                 break;
             default:
@@ -407,12 +407,12 @@ createMachineCode2(char *command, HashMap *commandObj, unsigned int sourceAddres
         if (operandTypeDest == REGISTER_TYPE && operandTypeSrc == REGISTER_TYPE) {
             code = convertInstructionToMachineCode((*commandObj).value.opCode, (*commandObj).value.funct, srcOperand,
                                                    sourceAddressType, destOperand,
-                                                   destAddressType, IC, wordLength);
+                                                   destAddressType);
         }
         if (operandTypeDest == REGISTER_TYPE || operandTypeSrc == REGISTER_TYPE) {
             code = convertInstructionToMachineCode((*commandObj).value.opCode, (*commandObj).value.funct, srcOperand,
                                                    sourceAddressType, destOperand,
-                                                   destAddressType, IC, wordLength);
+                                                   destAddressType);
         }
         if (operandTypeSrc == NUMBER_TYPE) {
             convertExtraValueToMachineCode(code, machineCodeSize - 1, valueSrc, sourceAddressType, -1);

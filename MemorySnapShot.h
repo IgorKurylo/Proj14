@@ -10,22 +10,30 @@
 enum ARE {
     absolute = 4, relocatable = 2, external = 1
 };
+
 typedef struct {
+    unsigned int opCode: 6;
+    unsigned int srcRegister: 3;
+    unsigned int srcAddress: 2;
+    unsigned int destRegister: 3;
+    unsigned int destAddress: 2;
+    unsigned int funct: 5;
     unsigned int are: 3;
-    int IC: 7;
-    int wordLength: 2;
-    unsigned int extraWordValue: 21;
-    union {
-        struct {
-            unsigned int funct: 5;
-            unsigned int opCode: 6;
-            unsigned int srcRegister: 3;
-            unsigned int destRegister: 3;
-            unsigned int srcAddress: 2;
-            unsigned int destAddress: 2;
-        } instructions;
-    } data;
+
+} instructions;
+
+typedef struct {
+    unsigned int dataValue:24;
+} data;
+typedef struct {
+    unsigned int are:3;
+    unsigned int extraWord:21;
+} extraWord;
+typedef struct {
+    instructions instructions_t;
+    data *dataValues;
 } MachineCode;
+
 
 
 extern int dataSnapShotMemory[MAX_DATA];
@@ -37,7 +45,7 @@ int *saveToSnapShotMemory(char *data, int directiveType, int *DC, int *deltaCoun
 
 MachineCode*
 convertInstructionToMachineCode(unsigned int command, unsigned int funct, unsigned int sourceOperand, unsigned int sourceAddressType, unsigned int destOperand,
-                                unsigned int destAddressType, int IC, int wordLength);
+                                unsigned int destAddressType);
 
 MachineCode *
 convertExtraValueToMachineCode(MachineCode *code, int index, unsigned int value, unsigned int addressType, int isLabelExternal);

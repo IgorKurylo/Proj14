@@ -40,7 +40,6 @@ saveToSnapShotMemory(char *data, int directiveType, int *DC, int *deltaCounter, 
             if (stringValidation(&data, lineNumber, errorCounter)) {
                 while (i <= strlen(data)) {
                     dataSnapShotMemory[counterOfData] = (int) data[i];
-                    //addDataToMachineCode(dataSnapShotMemory[counterOfData]);
                     ++counterOfData;
                     i++;
 
@@ -81,23 +80,21 @@ MachineCode *resizeMachineMemoryCode() {
 MachineCode *
 convertInstructionToMachineCode(unsigned int opcode, unsigned int funct, unsigned int sourceOperand,
                                 unsigned int sourceAddressType, unsigned int destOperand,
-                                unsigned int destAddressType, int IC, int wordLength) {
-    int index=machineCodeSize-1;
+                                unsigned int destAddressType) {
+    int index = machineCodeSize - 1;
     if (machineCode == NULL) {
         initMachineMemoryCode();
     } else {
         machineCode = resizeMachineMemoryCode();
     }
 
-    machineCode[index].data.instructions.opCode = opcode;
-    machineCode[index].data.instructions.funct = funct;
-    machineCode[index].data.instructions.srcRegister = sourceOperand;
-    machineCode[index].data.instructions.srcAddress = sourceAddressType;
-    machineCode[index].data.instructions.destRegister = destOperand;
-    machineCode[index].data.instructions.destAddress = destAddressType;
-    machineCode[index].are = absolute;
-    machineCode[index].IC = IC;
-    machineCode[index].wordLength = wordLength;
+    machineCode[index].instructions_t.opCode = opcode;
+    machineCode[index].instructions_t.funct = funct;
+    machineCode[index].instructions_t.srcRegister = sourceOperand;
+    machineCode[index].instructions_t.srcAddress = sourceAddressType;
+    machineCode[index].instructions_t.destRegister = destOperand;
+    machineCode[index].instructions_t.destAddress = destAddressType;
+    machineCode[index].instructions_t.are = absolute;
     //machineCode[machineCodeSize - 1].data.extraWord.value = 0; // init extra world to 0
 
     return &machineCode[machineCodeSize];
@@ -108,14 +105,14 @@ convertExtraValueToMachineCode(MachineCode *code, int index, unsigned int value,
                                int isLabelExternal) {
 
     if (machineCode != NULL && code != NULL) {
-        (*code).extraWordValue = value;
+        (*code).dataValues->dataValue = value;
         if (addressType != -1) {
             if (addressType == DIRECT_ADDRESSING) {
                 if (isLabelExternal != -1) {
-                    (*code).are = isLabelExternal ? external : relocatable;
+                    (*code).instructions_t.are = isLabelExternal ? external : relocatable;
                 }
             } else if (addressType == IMMEDIATE_ADDRESSING || addressType == RELATIVE_ADDRESSING) {
-                (*code).are = absolute;
+                (*code).instructions_t.are = absolute;
             }
             machineCode[index] = *code;
         }
@@ -124,28 +121,28 @@ convertExtraValueToMachineCode(MachineCode *code, int index, unsigned int value,
 
 }
 
-void addDataToMachineCode(unsigned int value) {
-    if (machineCode == NULL) {
-        initMachineMemoryCode();
-    } else {
-        resizeMachineMemoryCode();
-    }
-    if (machineCode != NULL) {
-        MachineCode codeBlockData = {};
-        codeBlockData.extraWordValue = value;
-        machineCode[machineCodeSize-1] = codeBlockData;
-    }
-
-}
+//void addDataToMachineCode(unsigned int value) {
+//    if (machineCode == NULL) {
+//        initMachineMemoryCode();
+//    } else {
+//        resizeMachineMemoryCode();
+//    }
+//    if (machineCode != NULL) {
+//        MachineCode codeBlockData = {};
+//        codeBlockData.extraWordValue = value;
+//        machineCode[machineCodeSize - 1] = codeBlockData;
+//    }
+//
+//}
 
 MachineCode getInstructionCounter(int address) {
     MachineCode instructionCounter = machineCode[address];
     return instructionCounter;
 }
-
-void updateMachineCode(int address, int offset, int IsExternalSymbol) {
-    machineCode[offset].extraWordValue = address;
-    if (IsExternalSymbol) {
-        machineCode[offset].are = external;
-    }
-}
+//
+//void updateMachineCode(int address, int offset, int IsExternalSymbol) {
+//    machineCode[offset].extraWordValue = address;
+//    if (IsExternalSymbol) {
+//        machineCode[offset].are = external;
+//    }
+//}
