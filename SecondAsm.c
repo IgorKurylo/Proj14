@@ -16,6 +16,8 @@ void buildMachineCodeOneOperand(AsmFileContent *asmContentFile, const int *IC, i
                                 int labelAddress, int isDistanceLabel, int symbolIndex, int *destAddressType,
                                 int *operandType, int *valueSrc, int *errorCounter, int *destOffset);
 
+void updateExternSymbol(const int *IC, int labelAddress, int symbolIndex);
+
 // second read of the asm file
 int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
 
@@ -103,6 +105,7 @@ void buildMachineCodeOneOperand(AsmFileContent *asmContentFile, const int *IC, i
                 printf("[ERROR] line %d: %s not found on symbol table", lineNumber, firstOperand);
             } else {
                 labelAddress = table[symbolIndex].address;
+                updateExternSymbol(IC, labelAddress, symbolIndex);
                 (*destOffset) = calculateOffsetAddress((*destAddressType));
                 if (isDistanceLabel) {
                     distanceOfJmpCommands = labelAddress - *IC;
@@ -123,6 +126,12 @@ void buildMachineCodeOneOperand(AsmFileContent *asmContentFile, const int *IC, i
         if ((*destAddressType) == REGISTER_TYPE) {
             (*destOffset) = 0;
         }
+    }
+}
+
+void updateExternSymbol(const int *IC, int labelAddress, int symbolIndex) {
+    if (labelAddress == 0 && table[symbolIndex].is_extern) {
+        table[symbolIndex].address = *IC;
     }
 }
 
