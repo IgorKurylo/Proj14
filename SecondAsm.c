@@ -12,9 +12,9 @@ void
 updateAddressesOfSymbol(int lineNumber, const char *firstOperand, int symbolIndex, int srcAddressType, int *destOffset,
                         SymbolTable *row, MachineCode *instructionCounter, int addressInstructionCounter);
 
-void buildMachineCodeOneOperand(AsmFileContent *asmContentFile, const int *IC, int lineNumber, char *firstOperand,
+void buildMachineCodeOneOperand(const int *IC, int lineNumber, char *firstOperand,
                                 int labelAddress, int isDistanceLabel, int symbolIndex, int *destAddressType,
-                                int *operandType, int *valueSrc, int *errorCounter, int *destOffset);
+                                int *operandType, int *errorCounter, int *destOffset, HashMap command);
 
 void updateExternSymbol(const int *IC, int labelAddress, int symbolIndex);
 
@@ -56,10 +56,17 @@ int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
             case 1:
                 parseOneOperand(operands, &firstOperand);
                 if (firstOperand != NULL) {
-                    buildMachineCodeOneOperand(&asmContentFile, IC, lineNumber, firstOperand, labelAddress,
+
+                    buildMachineCodeOneOperand(IC, lineNumber, firstOperand, labelAddress,
                                                isDistanceLabel, symbolIndex,
-                                               &destAddressType, &operandType, &valueSrc, &errorCounter, &destOffset);
+                                               &destAddressType, &operandType, &errorCounter, &destOffset,
+                                               commandObj);
+
+                    if ((destAddressType) == REGISTER_TYPE) {
+                        (destOffset) = 0;
+                    }
                     *IC += destOffset + 1;
+
                 }
                 break;
             case 2:
@@ -90,10 +97,11 @@ int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
 
 }
 
-void buildMachineCodeOneOperand(AsmFileContent *asmContentFile, const int *IC, int lineNumber, char *firstOperand,
+void buildMachineCodeOneOperand(const int *IC, int lineNumber, char *firstOperand,
                                 int labelAddress, int isDistanceLabel, int symbolIndex, int *destAddressType,
-                                int *operandType, int *valueSrc, int *errorCounter, int *destOffset) {
+                                int *operandType, int *errorCounter, int *destOffset, HashMap command) {
     int regDest = -1, distanceOfJmpCommands = -1;
+    MachineCode *code;
     if (validateOperand(firstOperand, destAddressType, lineNumber, errorCounter, 0, operandType)) {
         if ((*operandType) == 2) {
             if (strchr(firstOperand, '&')) {
@@ -107,25 +115,24 @@ void buildMachineCodeOneOperand(AsmFileContent *asmContentFile, const int *IC, i
                 labelAddress = table[symbolIndex].address;
                 updateExternSymbol(IC, labelAddress, symbolIndex);
                 (*destOffset) = calculateOffsetAddress((*destAddressType));
+                code = saveInstruction(command.value.opCode, command.value.funct, 0, 0, 0, *destAddressType);
                 if (isDistanceLabel) {
                     distanceOfJmpCommands = labelAddress - *IC;
                     //build machine code with this distance value
+                    saveWord(code, machineCodeSize - 1, distanceOfJmpCommands, *destAddressType,
+                             table[symbolIndex].is_extern, 1, 0);
+                } else {
+                    saveWord(code, machineCodeSize - 1, labelAddress, *destAddressType,
+                             table[symbolIndex].is_extern, 1, 0);
                 }
                 // build machine code with extra value
             }
         } else if ((*operandType) == 0) {
-            // is register
-            regDest = isRegister((*asmContentFile).line);
+            // is register , save instruction with register
+            regDest = isRegister(firstOperand);
+            saveInstruction(command.value.opCode, command.value.funct, 0, 0, regDest, *destAddressType);
+        }
 
-        } else if ((*operandType) == 1) {
-            // is value number
-            if (numberValidation(firstOperand, valueSrc, lineNumber, errorCounter)) {
-                // save to machine code
-            }
-        }
-        if ((*destAddressType) == REGISTER_TYPE) {
-            (*destOffset) = 0;
-        }
     }
 }
 

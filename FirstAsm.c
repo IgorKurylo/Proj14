@@ -44,7 +44,7 @@ int firstRead(AsmFileContent asmContentFile, int *IC, int *DC, int lineNumber) {
     if (parseLabel(asmContentFile.line, &labelName, numberOfLine + 1, &errorsCounter)) {
         asmContentFile.isLabel = 1;
     }
-    // parse directive .data/.string
+    // parse directive .Data/.string
     if (parseDirective(asmContentFile.line, &directiveData, numberOfLine + 1, &directiveType, &errorsCounter)) {
         rowType = symbol_data;
         if (asmContentFile.isLabel) {

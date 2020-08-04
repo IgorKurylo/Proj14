@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// Array for data snap shot saving & current size
+// Array for Data snap shot saving & current size
 int dataSnapShotMemory[MAX_DATA];
 int dataSize;
 // Array of machine code memory saving & current size
@@ -78,9 +78,9 @@ MachineCode *resizeMachineMemoryCode() {
 }
 
 MachineCode *
-convertInstructionToMachineCode(unsigned int opcode, unsigned int funct, unsigned int sourceOperand,
-                                unsigned int sourceAddressType, unsigned int destOperand,
-                                unsigned int destAddressType) {
+saveInstruction(unsigned int opcode, unsigned int funct, unsigned int sourceOperand,
+                unsigned int sourceAddressType, unsigned int destOperand,
+                unsigned int destAddressType) {
     int index = machineCodeSize - 1;
     if (machineCode == NULL) {
         initMachineMemoryCode();
@@ -88,31 +88,34 @@ convertInstructionToMachineCode(unsigned int opcode, unsigned int funct, unsigne
         machineCode = resizeMachineMemoryCode();
     }
 
-    machineCode[index].instructions_t.opCode = opcode;
-    machineCode[index].instructions_t.funct = funct;
-    machineCode[index].instructions_t.srcRegister = sourceOperand;
-    machineCode[index].instructions_t.srcAddress = sourceAddressType;
-    machineCode[index].instructions_t.destRegister = destOperand;
-    machineCode[index].instructions_t.destAddress = destAddressType;
-    machineCode[index].instructions_t.are = absolute;
-    //machineCode[machineCodeSize - 1].data.extraWord.value = 0; // init extra world to 0
-
+    machineCode[index].instruction.opCode = opcode;
+    machineCode[index].instruction.funct = funct;
+    machineCode[index].instruction.srcRegister = sourceOperand;
+    machineCode[index].instruction.srcAddress = sourceAddressType;
+    machineCode[index].instruction.destRegister = destOperand;
+    machineCode[index].instruction.destAddress = destAddressType;
+    machineCode[index].are = absolute;
     return &machineCode[machineCodeSize];
 }
 
 MachineCode *
-convertExtraValueToMachineCode(MachineCode *code, int index, unsigned int value, unsigned int addressType,
-                               int isLabelExternal) {
+saveWord(MachineCode *code, int index, unsigned int value, unsigned int addressType,
+         int isLabelExternal,int sizeOfWords,const int *valuesIndex) {
 
     if (machineCode != NULL && code != NULL) {
-        (*code).dataValues->dataValue = value;
+        if((*code).wordValues==NULL) {
+            (*code).wordValues = (Word *) malloc(sizeof(Word) * sizeOfWords);
+        }else{
+            (*code).wordValues[*valuesIndex].extraWord = value;
+        }
+
         if (addressType != -1) {
             if (addressType == DIRECT_ADDRESSING) {
                 if (isLabelExternal != -1) {
-                    (*code).instructions_t.are = isLabelExternal ? external : relocatable;
+                    (*code).are = isLabelExternal ? external : relocatable;
                 }
             } else if (addressType == IMMEDIATE_ADDRESSING || addressType == RELATIVE_ADDRESSING) {
-                (*code).instructions_t.are = absolute;
+                (*code).are = absolute;
             }
             machineCode[index] = *code;
         }
@@ -135,14 +138,5 @@ convertExtraValueToMachineCode(MachineCode *code, int index, unsigned int value,
 //
 //}
 
-MachineCode getInstructionCounter(int address) {
-    MachineCode instructionCounter = machineCode[address];
-    return instructionCounter;
-}
-//
-//void updateMachineCode(int address, int offset, int IsExternalSymbol) {
-//    machineCode[offset].extraWordValue = address;
-//    if (IsExternalSymbol) {
-//        machineCode[offset].are = external;
-//    }
-//}
+
+

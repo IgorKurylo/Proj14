@@ -72,7 +72,7 @@ void printSymbolTable() {
         for (i = 0; i < tableSize; i++) {
 
             printf("%5s\t%3d\t\t%5s %s\n", table[i].name, table[i].address,
-                   table[i].type == symbol_code ? "code" : table[i].type == symbol_data ? "data" : "",
+                   table[i].type == symbol_code ? "code" : table[i].type == symbol_data ? "Data" : "",
                    table[i].is_extern ? "external" : table[i].is_entry ? "entry" : "");
         }
     }

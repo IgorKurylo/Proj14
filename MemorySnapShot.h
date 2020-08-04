@@ -18,22 +18,20 @@ typedef struct {
     unsigned int destRegister: 3;
     unsigned int destAddress: 2;
     unsigned int funct: 5;
+} Instruction;
+
+typedef struct {
+    unsigned int dataValue: 24;
+} Data;
+typedef struct {
+    unsigned int extraWord: 21;
+} Word;
+typedef struct {
     unsigned int are: 3;
-
-} instructions;
-
-typedef struct {
-    unsigned int dataValue:24;
-} data;
-typedef struct {
-    unsigned int are:3;
-    unsigned int extraWord:21;
-} extraWord;
-typedef struct {
-    instructions instructions_t;
-    data *dataValues;
+    Instruction instruction;
+    Word *wordValues;
+    Data *dataValues;
 } MachineCode;
-
 
 
 extern int dataSnapShotMemory[MAX_DATA];
@@ -43,12 +41,14 @@ extern int machineCodeSize;
 
 int *saveToSnapShotMemory(char *data, int directiveType, int *DC, int *deltaCounter, int *errorCounter, int lineNumber);
 
-MachineCode*
-convertInstructionToMachineCode(unsigned int command, unsigned int funct, unsigned int sourceOperand, unsigned int sourceAddressType, unsigned int destOperand,
-                                unsigned int destAddressType);
+MachineCode *
+saveInstruction(unsigned int command, unsigned int funct, unsigned int sourceOperand, unsigned int sourceAddressType,
+                unsigned int destOperand,
+                unsigned int destAddressType);
 
 MachineCode *
-convertExtraValueToMachineCode(MachineCode *code, int index, unsigned int value, unsigned int addressType, int isLabelExternal);
+saveWord(MachineCode *code, int index, unsigned int value, unsigned int addressType, int isLabelExternal,
+         int sizeOfWords, const int *valuesIndex);
 
 void updateMachineCode(int address, int offset, int IsExternalSymbol);
 

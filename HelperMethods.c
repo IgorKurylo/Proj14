@@ -210,7 +210,7 @@ int stringValidation(char **string, int lineNumber, int *errorCounter) {
         (*string)[strlen(*string) - 1] = '\0';
         ++*string;
     } else if (**string == '\0') {
-        printf("[ERROR] line %d: No data in string directive \n", lineNumber);
+        printf("[ERROR] line %d: No Data in string directive \n", lineNumber);
         (*errorCounter)++;
     } else {
         printf("[ERROR] line %d: string must start and end with quotes \n", lineNumber);
@@ -363,80 +363,10 @@ int isJmpCommand(char *command) {
 }
 
 
-void createMachineCode(char *firstOp, HashMap *commandObj, int destAddressType, int valueDest, int operandTypeDest,
-                       int destExtraWord, int destOperand, int IC, int wordLength) {
-    MachineCode *code;
-    if ((*commandObj).key != NULL) {
-
-        switch (operandTypeDest) {
-            case REGISTER_TYPE: // REGISTER TYPE
-                destOperand = isRegister(firstOp);
-                code = convertInstructionToMachineCode((*commandObj).value.opCode, (*commandObj).value.funct, 0, 0,
-                                                       destOperand,
-                                                       destAddressType);
-                break;
-//            case NUMBER_TYPE: // NUMBER TYPE
-//                (destExtraWord) = valueDest; // convert to binary
-//
-//                convertExtraValueToMachineCode(&code,machineCodeSize-1,destExtraWord, operandTypeDest, -1);
-//                break;
-            case LABEL_TYPE: // LABEL TYPE
-                destExtraWord = 0;
-                code = convertInstructionToMachineCode((*commandObj).value.opCode, (*commandObj).value.funct, 0, 0,
-                                                       destOperand,
-                                                       destAddressType);
-                convertExtraValueToMachineCode(code, machineCodeSize - 1, 0, operandTypeDest, -1);
-                break;
-            default:
-                break;
-
-        }
-
-    }
-}
-
-void
-createMachineCode2(char *command, HashMap *commandObj, unsigned int sourceAddressType, unsigned int destAddressType,
-                   int valueSrc,
-                   unsigned int valueDest, unsigned int operandTypeSrc, unsigned int operandTypeDest,
-                   unsigned int destOperand, unsigned int srcOperand, int IC,
-                   int wordLength) {
-    MachineCode *code;
-    (*commandObj) = commandOpCode_functCode(command);
-    if ((*commandObj).key != NULL) {
-        if (operandTypeDest == REGISTER_TYPE && operandTypeSrc == REGISTER_TYPE) {
-            code = convertInstructionToMachineCode((*commandObj).value.opCode, (*commandObj).value.funct, srcOperand,
-                                                   sourceAddressType, destOperand,
-                                                   destAddressType);
-        }
-        if (operandTypeDest == REGISTER_TYPE || operandTypeSrc == REGISTER_TYPE) {
-            code = convertInstructionToMachineCode((*commandObj).value.opCode, (*commandObj).value.funct, srcOperand,
-                                                   sourceAddressType, destOperand,
-                                                   destAddressType);
-        }
-        if (operandTypeSrc == NUMBER_TYPE) {
-            convertExtraValueToMachineCode(code, machineCodeSize - 1, valueSrc, sourceAddressType, -1);
-        }
-        if (operandTypeDest == NUMBER_TYPE) {
-            convertExtraValueToMachineCode(code, machineCodeSize - 1, valueDest, destAddressType, -1);
-        }
-        if (operandTypeSrc == LABEL_TYPE) {
-            convertExtraValueToMachineCode(code, machineCodeSize - 1, valueSrc, operandTypeSrc, -1);
-        }
-        if (operandTypeDest == LABEL_TYPE) {
-            convertExtraValueToMachineCode(code, machineCodeSize - 1, valueDest, operandTypeDest, -1);
-        }
-    }
-}
-
 int parseOperands(char *operands, char *command, int numOfOperand, int lineNumber, int *IC, int *errorCounter) {
     char *firstOp = NULL, *secondOp = NULL;
-    HashMap commandObj;
     int sourceAddressType = -1, destAddressType = -1, srcOffset = 0, destOffset = 0, valueSrc = 0, valueDest = 0;
     int operandTypeSrc = -1, operandTypeDest = -1; // 0 REGISTER, 1 NUMBER, 2 LABEL
-    int destExtraWord = 0, destOperand = 0, srcOperand = 0;
-    int countOfWord = 0;
-
     switch (numOfOperand) {
         case 0:
             ++(*IC);
@@ -531,20 +461,6 @@ int parseOperands(char *operands, char *command, int numOfOperand, int lineNumbe
             } else if (sourceAddressType != REG_ADDRESSING && destAddressType == REG_ADDRESSING) {
                 destOffset = 0;
             }
-
-
-            if (operandTypeDest == REGISTER_TYPE && operandTypeSrc == REGISTER_TYPE) {
-                destOperand = isRegister(firstOp);
-                srcOperand = isRegister(secondOp);
-            } else if (operandTypeSrc == REGISTER_TYPE && operandTypeDest != REGISTER_TYPE) {
-
-                srcOperand = isRegister(firstOp);
-                destAddressType = 0;
-            } else if (operandTypeSrc != REGISTER_TYPE && operandTypeDest == REGISTER_TYPE) {
-                destOperand = isRegister(secondOp);
-                sourceAddressType = 0;
-            }
-            countOfWord = srcOffset + destOffset;
             *IC += srcOffset + destOffset + 1;
             return 1;
         default:
@@ -692,13 +608,13 @@ int populateDataDirective(int *DC, int directiveType, char *directiveDefinedData
     if (snapShotMemory == NULL) {
 
         *errorCounter++;
-        printf("[ERROR] line %d : Can't add data to data memory block\n ", linerNumber);
+        printf("[ERROR] line %d : Can't add Data to Data memory block\n ", linerNumber);
     }
     return deltaDataCounter;
 }
 
 int parseDirective(char *line, char **data, int lineNumber, int *directiveType, int *errorsCounter) {
-    char DATA[] = ".data", STRING[] = ".string", *directive, *dataFixer, *copiedData, *copiedNumberArray = NULL;
+    char DATA[] = ".Data", STRING[] = ".string", *directive, *dataFixer, *copiedData, *copiedNumberArray = NULL;
 
     int i = 0, directiveSeparatorIndex = 0, dataCounter = 0;
     char *directiveStatement = NULL;
@@ -718,7 +634,7 @@ int parseDirective(char *line, char **data, int lineNumber, int *directiveType, 
             }
         }
         if (directiveSeparatorIndex == 0) {
-            printf("[ERROR] line %d:  No spaces found between directive and data \n ", lineNumber);
+            printf("[ERROR] line %d:  No spaces found between directive and Data \n ", lineNumber);
             *errorsCounter++;
             return 0;
         } else {
@@ -728,7 +644,7 @@ int parseDirective(char *line, char **data, int lineNumber, int *directiveType, 
     } else {
         return 0;
     }
-    // check if a directive is .data/.string/
+    // check if a directive is .Data/.string/
     *directiveType = strcmp(directive, DATA) == 0 ? DATA_DIRECTIVE : STRING_DIRECTIVE;
     if (*directiveType == DATA_DIRECTIVE || *directiveType == STRING_DIRECTIVE) {
         directiveStatement += directiveSeparatorIndex;
@@ -744,7 +660,7 @@ int parseDirective(char *line, char **data, int lineNumber, int *directiveType, 
 
         return 1;
     } else {
-        printf("[ERROR] line %d :  Not found %s directive \n", lineNumber, *directiveType == 1 ? "code" : "data");
+        printf("[ERROR] line %d :  Not found %s directive \n", lineNumber, *directiveType == 1 ? "code" : "Data");
         *errorsCounter++;
         free(*data);
         return 0;
