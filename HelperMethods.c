@@ -667,8 +667,23 @@ int parseDirective(char *line, char **data, int lineNumber, int *directiveType, 
     }
 }
 
-int convertToBase2(int number, int size) {
+int convertToBase2(int number) {
+    int carry = 0, index = 15; // todo: with realloc?
+    char b[15];
+    while (number > 0) {
+        carry = number % 2;
+        number /= 2;
+        b[index--] = carry;
+    }
+    for (int i = 0; i < 16; i++) {
+        printf("%d", b[i]);
+    }
 
+}
+
+int convertTo2Complement(int number) {
+    int result = (~number) + 1;
+    convertToBase2(result);
 }
 
 
