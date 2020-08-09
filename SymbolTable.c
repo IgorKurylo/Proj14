@@ -64,9 +64,11 @@ int checkIfSymbolExists(char *symbolName, int lineNumber) {
 
 void updateSymbolTable(int IC) {
     int i = 0;
-    for (i = 0; i < tableSize; i++) {
-        if (table[i].type == symbol_data) {
-            table[i].address += IC;
+    if (table != NULL) {
+        for (i = 0; i < tableSize; i++) {
+            if (table[i].type == symbol_data) {
+                table[i].address += IC;
+            }
         }
     }
 }
@@ -76,7 +78,9 @@ SymbolTable getTableRow(int index) {
 }
 
 void updateIsEntrySymbol(int index) {
-    table[index].is_entry = 1;
+    if (table != NULL) {
+        table[index].is_entry = 1;
+    }
 }
 
 void freeTable() {
@@ -84,7 +88,11 @@ void freeTable() {
         free(table);
         tableSize = 0;
     }
+}
 
-
+void updateAddress(int address, int index) {
+    if (table != NULL) {
+        table[index].address = address;
+    }
 }
 

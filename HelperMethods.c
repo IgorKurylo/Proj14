@@ -74,6 +74,31 @@ int isComment(const char *line) {
     return 0;
 }
 
+int convertToBase2(int value) {
+    int carry = 0, index = 15, counter = 0; // todo: with realloc?
+    char b[15];
+    while (value > 0) {
+        carry = value % 2;
+        value /= 2;
+        b[index--] = carry;
+        counter++;
+    }
+    for (int i = 0; i < 15; i++) {
+        printf("%d", b[i]);
+    }
+
+}
+
+int convertTo2Complement(int value) {
+    unsigned char result;
+    if (value < 0) {
+        result = ~(value * (-1)) + 1;
+        return result;
+    } else {
+        return (int) value;
+    }
+}
+
 
 char *parseLabel(char *line, char **labelName, int lineNumber, int *errorCounter) {
     char *label = NULL;
@@ -219,33 +244,37 @@ int stringValidation(char **string, int lineNumber, int *errorCounter) {
     return 1;
 }
 
-int numberValidation(char *number, int *value, int lineNumber, int *errorCounter) {
+int numberValidation(char *number_value, int *value, int lineNumber, int *errorCounter) {
 
     int maxNum = (1 << MEMORY_WORD_SIZE) - 1;
     char *end;
     int valueLocal = 0;
     if (value != NULL) {
-        *value = (int) strtol(number, &end, 10);
+        *value = (int) strtol(number_value, &end, 10);
         if (*value > maxNum || *value < -maxNum) {
-            printf(" [ERROR] line  %d: %s is %s , the number must be in the range %d - %d \n", lineNumber, number,
+            printf(" [ERROR] line  %d: %s is %s , the number_operand must be in the range %d - %d \n", lineNumber,
+                   number_value,
                    value > 0 ? "bigger" : "smaller", -maxNum,
                    maxNum);
             return 0;
         }
     } else {
-        valueLocal = (int) strtol(number, &end, 10);
+        valueLocal = (int) strtol(number_value, &end, 10);
         if (valueLocal > maxNum || valueLocal < -maxNum) {
-            printf(" [ERROR] line  %d:%s is %s , the number must be in the range %d - %d \n", lineNumber, number,
+            printf(" [ERROR] line  %d:%s is %s , the number_operand must be in the range %d - %d \n", lineNumber,
+                   number_value,
                    value > 0 ? "bigger" : "smaller", -maxNum,
                    maxNum);
             return 0;
         }
     }
     if (end && *end != '\0') {
-        printf("[ERROR] line  %d: %s is not a valid number \n ", lineNumber, number);
+        printf("[ERROR] line  %d: %s is not a valid number_operand \n ", lineNumber, number_value);
         (*errorCounter)++;
         return 0;
     }
+    convertTo2Complement(*value);
+
     return 1;
 }
 
@@ -282,21 +311,21 @@ int validateOperand(char *operand, int *addressType, int line, int *errorCounter
 
     if (isRegister(operand) != -1) {
         *addressType = REG_ADDRESSING;
-        *operandType = 0;
+        *operandType = register_operand;
         return 1;
     } else if (isJumpToLabelSymbol(operand)) { // if the operand have a & symbol
         operand++;
         if (isAlphaNumeric(operand)) {
             *addressType = RELATIVE_ADDRESSING;
-            *operandType = 2;
+            *operandType = label_operand;
             return 1;
         }
     } else if (isAlphaNumeric(operand)) {
         *addressType = DIRECT_ADDRESSING;
-        *operandType = 2;
+        *operandType = label_operand;
         return 1;
     } else if (isValueNumber(operand, value, line, errorCounter)) {
-        *operandType = 1;
+        *operandType = number_operand;
         *addressType = IMMEDIATE_ADDRESSING;
         return 1;
     }
@@ -359,7 +388,7 @@ int calculateOffsetAddress(int addressType) {
 
 
 int isJmpCommand(char *command) {
-    return strcmp(command, "jmp");
+    return strcmp(command, "jmp") == 0 || strcmp(command, "bne") == 0 || strcmp(command, "jsr") == 0;
 }
 
 
@@ -377,7 +406,7 @@ int parseOperands(char *operands, char *command, int numOfOperand, int lineNumbe
             return 1;
         case 1:
             // get operand after a command
-            if (!isJmpCommand(command)) {
+            if (isJmpCommand(command)) {
                 destAddressType = RELATIVE_ADDRESSING;
                 destOffset = calculateOffsetAddress(destAddressType);
                 if (!validateCommandAddressType(command, sourceAddressType, destAddressType)) {
@@ -614,7 +643,7 @@ int populateDataDirective(int *DC, int directiveType, char *directiveDefinedData
 }
 
 int parseDirective(char *line, char **data, int lineNumber, int *directiveType, int *errorsCounter) {
-    char DATA[] = ".Data", STRING[] = ".string", *directive, *dataFixer, *copiedData, *copiedNumberArray = NULL;
+    char DATA[] = ".data", STRING[] = ".string", *directive, *dataFixer, *copiedData, *copiedNumberArray = NULL;
 
     int i = 0, directiveSeparatorIndex = 0, dataCounter = 0;
     char *directiveStatement = NULL;
@@ -667,24 +696,6 @@ int parseDirective(char *line, char **data, int lineNumber, int *directiveType, 
     }
 }
 
-int convertToBase2(int number) {
-    int carry = 0, index = 15; // todo: with realloc?
-    char b[15];
-    while (number > 0) {
-        carry = number % 2;
-        number /= 2;
-        b[index--] = carry;
-    }
-    for (int i = 0; i < 16; i++) {
-        printf("%d", b[i]);
-    }
-
-}
-
-int convertTo2Complement(int number) {
-    int result = (~number) + 1;
-    convertToBase2(result);
-}
 
 
 

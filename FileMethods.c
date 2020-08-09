@@ -13,23 +13,16 @@ FILE *readFile(char *fileName) {
     if (asmFile != NULL) {
         return asmFile;
     }
+    fclose(asmFile);
     return NULL;
 }
 
-FILE *openFile(char *fileName, char *fileExtension) {
-    FILE *file = NULL;
-    char *fileToOpen = NULL;
-    fileToOpen = (char *) malloc(sizeof(char) * strlen(fileName) * strlen(fileExtension));
+void fileNameToOpen(char *fileName, char *fileExtension, char **fileToOpen) {
+    *fileToOpen = (char *) malloc(sizeof(char*) * strlen(fileName) * strlen(fileExtension));
     if (fileToOpen != NULL) {
-        strcpy(fileToOpen, fileName);
-        fileToOpen = strcat(fileToOpen, fileExtension);
+        strcpy(*fileToOpen, fileName);
+        strcat(*fileToOpen, fileExtension);
     }
-    file = fopen(fileToOpen, "w");
-    if (file != NULL) {
-        free(fileToOpen);
-        return file;
-    }
-    return NULL;
 }
 
 
@@ -51,29 +44,50 @@ AsmFileContent *fileContent(FILE *file, int *fileLines) {
 
 void writeEntryFile(SymbolTable *tableArray, int size, char *fileName) {
     int i = 0;
-    FILE *file = NULL;
-    file = openFile(fileName, ENTRY_FILE);
-    if (file != NULL) {
+    char *fileToOpen=NULL;
+    FILE *filePtr;
+//    fileNameToOpen(fileName,ENTRY_FILE,&fileToOpen);
+//
+    strcat(fileName,ENTRY_FILE);
+    filePtr=fopen(fileName,"w");
+    if (filePtr != NULL) {
         for (i = 0; i < size; i++) {
-            if (table[i].is_entry) {
-
-                fprintf(file, "%s\t%04d\n", table[i].name, table[i].address);
+            if (tableArray[i].is_entry) {
+                fprintf(filePtr, "%s\t%07d\n", tableArray[i].name, tableArray[i].address);
             }
         }
-        fclose(file);
+        //fclose(filePtr);
+    }
+
+}
+
+void writeExternFile(char **externalsLabelsArray, int size, char *fileName) {
+    int i = 0;
+    char *fileToOpen=NULL;
+    FILE *filePtr;
+    fileNameToOpen(fileName,EXTERNAL_FILE,&fileToOpen);
+    filePtr=fopen(fileToOpen,"w");
+    if (filePtr != NULL) {
+        for (i = 0; i < size; i++) {
+            if (strcmp(externalsLabelsArray[i], "") != 0) {
+                fprintf(filePtr, "%s\t%07d\n", externalsLabelsArray[i], i);
+            }
+        }
+        fclose(filePtr);
     }
 }
 
-void writeExternFile(SymbolTable *tableArray, int size, char *fileName) {
-    int i = 0;
-    FILE *file = NULL;
-    file = openFile(fileName, EXTERNAL_FILE);
-    if (file != NULL) {
-        for (i = 0; i < size; i++) {
-            if (tableArray[i].is_extern) {
-                fprintf(file, "%s\t%04d\n", tableArray[i].name, tableArray[i].address);
-            }
+char *getFileName(char *file) {
+    char *fileName;
+    int index = 0;
+    fileName = (char *) malloc(sizeof(char) * strlen(file));
+    if (fileName != NULL) {
+        while (*file != '.') {
+            fileName[index++] = *file;
+            file++;
         }
-        fclose(file);
     }
+    fileName[index] = 0;
+    return fileName;
+
 }

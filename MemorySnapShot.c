@@ -14,8 +14,9 @@ int dataSnapShotMemory[MAX_DATA];
 int dataSize;
 // Array of machine code memory saving & current size
 MachineCode *machineCode;
-int machineCodeSize = 1;
+int machineCodeSize = 0;
 
+char **externalLabels;
 
 int *
 saveToSnapShotMemory(char *data, int directiveType, int *DC, int *deltaCounter, int *errorCounter, int lineNumber) {
@@ -57,86 +58,78 @@ saveToSnapShotMemory(char *data, int directiveType, int *DC, int *deltaCounter, 
 }
 
 
-void initMachineMemoryCode() {
-    machineCode = (MachineCode *) malloc(sizeof(MachineCode) * machineCodeSize);
+MachineCode *initMachineMemoryCode(int sizeOfMachineCode) {
+    machineCode = (MachineCode *) malloc(sizeof(MachineCode) * sizeOfMachineCode);
     if (machineCode == NULL) {
         printf("[ERROR] Machine code allocation fail\n");
-        return;
+        return NULL;
     } else {
+
         printf("[INFO] Machine code allocated successfully\n");
+        return machineCode;
     }
 }
 
-MachineCode *resizeMachineMemoryCode() {
-    MachineCode *machineCodeTemp;
-    machineCodeSize++;
-    machineCodeTemp = (MachineCode *) realloc(machineCode, sizeof(MachineCode) * (machineCodeSize));
-    if (machineCodeTemp != NULL) {
-        machineCode = machineCodeTemp;
-    }
-    return machineCode;
-}
 
-MachineCode *
+void
 saveInstruction(unsigned int opcode, unsigned int funct, unsigned int sourceOperand,
                 unsigned int sourceAddressType, unsigned int destOperand,
                 unsigned int destAddressType) {
-    int index = machineCodeSize - 1;
-    if (machineCode == NULL) {
-        initMachineMemoryCode();
-    } else {
-        machineCode = resizeMachineMemoryCode();
-    }
-
-    machineCode[index].instruction.opCode = opcode;
-    machineCode[index].instruction.funct = funct;
-    machineCode[index].instruction.srcRegister = sourceOperand;
-    machineCode[index].instruction.srcAddress = sourceAddressType;
-    machineCode[index].instruction.destRegister = destOperand;
-    machineCode[index].instruction.destAddress = destAddressType;
-    machineCode[index].are = absolute;
-    return &machineCode[machineCodeSize];
+    int index = machineCodeSize;
+    machineCode[index].instruction_object.opCode = opcode;
+    machineCode[index].instruction_object.funct = funct;
+    machineCode[index].instruction_object.srcRegister = sourceOperand;
+    machineCode[index].instruction_object.srcAddress = sourceAddressType;
+    machineCode[index].instruction_object.destRegister = destOperand;
+    machineCode[index].instruction_object.destAddress = destAddressType;
+    machineCode[index].instruction_object.are = absolute;
+    machineCodeSize++;
 }
 
-MachineCode *
-saveWord(MachineCode *code, int index, unsigned int value, unsigned int addressType,
-         int isLabelExternal,int sizeOfWords,const int *valuesIndex) {
-
-    if (machineCode != NULL && code != NULL) {
-        if((*code).wordValues==NULL) {
-            (*code).wordValues = (Word *) malloc(sizeof(Word) * sizeOfWords);
-        }else{
-            (*code).wordValues[*valuesIndex].extraWord = value;
-        }
-
-        if (addressType != -1) {
-            if (addressType == DIRECT_ADDRESSING) {
-                if (isLabelExternal != -1) {
-                    (*code).are = isLabelExternal ? external : relocatable;
-                }
-            } else if (addressType == IMMEDIATE_ADDRESSING || addressType == RELATIVE_ADDRESSING) {
-                (*code).are = absolute;
+void
+saveWord(unsigned int value, unsigned int addressType,
+         int isLabelExternal) {
+    int index = 0;
+    index = machineCodeSize;
+    if (addressType != -1) {
+        if (addressType == DIRECT_ADDRESSING) {
+            if (isLabelExternal != -1) {
+                machineCode[index].extraWord.are = isLabelExternal ? external : relocatable;
             }
-            machineCode[index] = *code;
+        } else if (addressType == IMMEDIATE_ADDRESSING || addressType == RELATIVE_ADDRESSING) {
+            machineCode[index].extraWord.are = absolute;
         }
     }
-    return &machineCode[index];
+    machineCode[index].extraWord.extraWord = value;
+    machineCodeSize++;
 
 }
 
-//void addDataToMachineCode(unsigned int value) {
-//    if (machineCode == NULL) {
-//        initMachineMemoryCode();
-//    } else {
-//        resizeMachineMemoryCode();
-//    }
-//    if (machineCode != NULL) {
-//        MachineCode codeBlockData = {};
-//        codeBlockData.extraWordValue = value;
-//        machineCode[machineCodeSize - 1] = codeBlockData;
-//    }
-//
-//}
+void saveData(unsigned int value) {
+    int index = 0;
+    index = machineCodeSize;
+    machineCode[index].data.dataValue = value;
+    machineCodeSize++;
+}
 
+
+char **initExternalLabels(int sizeOfIC) {
+    int index = 0;
+    externalLabels = (char **) malloc(sizeof(char) * sizeOfIC);
+    if (externalLabels != NULL) {
+        for (index = 0; index < sizeOfIC; index++) {
+            externalLabels[index] = "";
+        }
+        return externalLabels;
+    } else {
+        return NULL;
+    }
+}
+
+void addExternalLabel(int IC, char *label) {
+    if (externalLabels != NULL) {
+        externalLabels[IC] = label;
+    }
+}
 
 

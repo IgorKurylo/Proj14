@@ -29,6 +29,7 @@ SymbolTable getTableRow(int index);
 int checkIfSymbolExists(char *symbolName,int lineNumber);
 void updateIsEntrySymbol(int index);
 void updateSymbolTable(int IC);
+void updateAddress(int address,int index);
 void freeTable();
 
 #endif //PROJECTMAMAN14_SYMBOLTABLE_H

@@ -16,8 +16,8 @@ void printSymbolTable();
 
 int main(int argc, char *argv[]) {
 
-    int numberOfFiles = argc, fileLines = 0, i = 0, index = 0, IC = 0, DC = 0, ICF = 0, DCF = 0, errorsFirstRead = 0, errorSecondRead = 0, indexInstruction = 0;
-    char *labelName = NULL;
+    int numberOfFiles = argc, fileLines = 0, i = 0, index = 0, IC = 0, DC = 0, ICF = 0, DCF = 0, errorsFirstRead = 0, errorSecondRead = 0;
+    char *fileName;
     AsmFileContent *asmContentFile = NULL;
     FILE *file = NULL;
 
@@ -30,6 +30,7 @@ int main(int argc, char *argv[]) {
     } else {
         for (i = 1; i < argc; i++) {
             file = readFile(argv[i]);
+            fileName = getFileName(argv[i]);
             if (file != NULL) {
                 asmContentFile = fileContent(file, &fileLines);
                 if (allocateTable() != NULL) {
@@ -41,7 +42,6 @@ int main(int argc, char *argv[]) {
                         printf("See all errors messages and warnings ,fix and run again\n");
                         exit(-1);
                     } else {
-                        printSymbolTable();
                         ICF = IC;
                         DCF = DC;
                         // update symbol table with IC+INIT ADDRESS = (100)
@@ -49,10 +49,19 @@ int main(int argc, char *argv[]) {
                         printf("\n");
                         printSymbolTable();
                     }
-                    for (index = 0; index < fileLines; index++) {
-                        errorSecondRead += secondRead(asmContentFile[index], &IC, index + 1);
+                    IC = 0;
+                    if (initMachineMemoryCode(ICF) != NULL && initExternalLabels(ICF) != NULL) {
+                        for (index = 0; index < fileLines; index++) {
+                            errorSecondRead += secondRead(asmContentFile[index], &IC, index + 1);
+                        }
                     }
-
+                    if (errorSecondRead > 0) {
+                        printf("Errors found %d\n", errorSecondRead);
+                        printf("See all errors messages and warnings ,fix and run again\n");
+                    } else {
+                        writeEntryFile(table, tableSize, fileName);
+                        writeExternFile(externalLabels, ICF, fileName);
+                    }
                 }
             }
         }

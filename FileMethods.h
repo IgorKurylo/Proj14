@@ -24,7 +24,7 @@ typedef struct {
 
 FILE *readFile(char *fileName);
 
-FILE *openFile(char *fileName, char *fileExtension);
+void fileNameToOpen(char *fileName, char *fileExtension,char **fileToOpen);
 
 AsmFileContent *fileContent(FILE *file, int *fileLines);
 
@@ -34,6 +34,7 @@ void writeMachineCodeFile(int IC, int DC, MachineCode *machineCode);
 
 void writeEntryFile(SymbolTable *table, int tableSize, char *fileName);
 
-void writeExternFile(SymbolTable *table, int tableSize, char *fileName);
+void writeExternFile(char **externalsLabelsArray, int size, char *fileName);
 
+char *getFileName(char *file);
 #endif //PROJECTMAMAN14_FILEMETHODS_H

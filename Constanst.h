@@ -24,7 +24,9 @@
 #define LABEL_TYPE 2
 #define ENTRY ".entry"
 #define EXTERN ".extern"
-
+#define label_operand 2
+#define number_operand 1
+#define register_operand 0
 
 
 #endif //PROJECTMAMAN14_CONSTANST_H

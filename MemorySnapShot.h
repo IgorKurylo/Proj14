@@ -12,25 +12,28 @@ enum ARE {
 };
 
 typedef struct {
-    unsigned int opCode: 6;
-    unsigned int srcRegister: 3;
-    unsigned int srcAddress: 2;
+    unsigned int are: 3;
+    unsigned int funct: 5;
     unsigned int destRegister: 3;
     unsigned int destAddress: 2;
-    unsigned int funct: 5;
+    unsigned int srcRegister: 3;
+    unsigned int srcAddress: 2;
+    unsigned int opCode: 6;
 } Instruction;
 
 typedef struct {
     unsigned int dataValue: 24;
 } Data;
 typedef struct {
+    unsigned int are: 3;
     unsigned int extraWord: 21;
 } Word;
 typedef struct {
-    unsigned int are: 3;
-    Instruction instruction;
-    Word *wordValues;
-    Data *dataValues;
+    union {
+        Instruction instruction_object;
+        Word extraWord;
+        Data data;
+    };
 } MachineCode;
 
 
@@ -38,22 +41,24 @@ extern int dataSnapShotMemory[MAX_DATA];
 extern int dataSize;
 extern MachineCode *machineCode;
 extern int machineCodeSize;
+extern char** externalLabels;
 
 int *saveToSnapShotMemory(char *data, int directiveType, int *DC, int *deltaCounter, int *errorCounter, int lineNumber);
 
-MachineCode *
+void
 saveInstruction(unsigned int command, unsigned int funct, unsigned int sourceOperand, unsigned int sourceAddressType,
                 unsigned int destOperand,
                 unsigned int destAddressType);
 
-MachineCode *
-saveWord(MachineCode *code, int index, unsigned int value, unsigned int addressType, int isLabelExternal,
-         int sizeOfWords, const int *valuesIndex);
+void saveWord(unsigned int value, unsigned int addressType,
+              int isLabelExternal);
 
-void updateMachineCode(int address, int offset, int IsExternalSymbol);
+void saveData(unsigned int value);
 
-MachineCode getInstructionCounter(int offset);
+MachineCode *initMachineMemoryCode(int sizeOfMachineCode);
 
-void addDataToMachineCode(unsigned int value);
+char **initExternalLabels(int sizeOfIC);
+void addExternalLabel(int IC, char *label);
+
 
 #endif //PROJ14_MEMORYSNAPSHOT_H
