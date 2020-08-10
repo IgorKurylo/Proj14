@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
     char *fileName;
     AsmFileContent *asmContentFile = NULL;
     FILE *file = NULL;
-
+    SymbolTable *table_symbol;
     if (numberOfFiles == 1) {
         printf("\n[ERROR] - You must enter asm file name \n");
 
@@ -29,8 +29,8 @@ int main(int argc, char *argv[]) {
         exit(0);
     } else {
         for (i = 1; i < argc; i++) {
-            file = readFile(argv[i]);
             fileName = getFileName(argv[i]);
+            file = readFile(fileName, ASM_FILE);
             if (file != NULL) {
                 asmContentFile = fileContent(file, &fileLines);
                 if (allocateTable() != NULL) {
@@ -48,6 +48,8 @@ int main(int argc, char *argv[]) {
                         updateSymbolTable((INIT_ADDRESS + IC));
                         printf("\n");
                         printSymbolTable();
+                        printf("Final Instructor Counter %d\n", ICF);
+                        printf("Final Data Counter %d\n", DCF);
                     }
                     IC = 0;
                     if (initMachineMemoryCode(ICF) != NULL && initExternalLabels(ICF) != NULL) {
@@ -59,14 +61,21 @@ int main(int argc, char *argv[]) {
                         printf("Errors found %d\n", errorSecondRead);
                         printf("See all errors messages and warnings ,fix and run again\n");
                     } else {
+                        fileName = getFileName(argv[i]);
                         writeEntryFile(table, tableSize, fileName);
+                        fileName = getFileName(argv[i]);
                         writeExternFile(externalLabels, ICF, fileName);
+                        fileName = getFileName(argv[i]);
+                        writeMachineCodeFile(ICF,DCF,machineCode,fileName);
+
                     }
+
                 }
+            } else {
+                printf("[ERROR] File %s not exists\n", fileName);
             }
         }
-        printf("Final Instructor Counter %d\n", ICF);
-        printf("Final Data Counter %d\n", DCF);
+
 
     }
     return 0;

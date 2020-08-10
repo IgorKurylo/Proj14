@@ -563,12 +563,13 @@ void extractOperand(char *line, char **label, char *originalLine, int counter) {
     strncpy(*label, originalLine, counter);
 }
 
-int checkIsDirective(char *line, const char *originalLine, char *finalDirective, int *counter, const char *type) {
+int checkIsDirective(char *line, const char *originalLine, int *counter, const char *type) {
+    char *finalDirective=NULL;
     while (*line != ' ') {
         (*counter)++;
         line++;
     }
-    finalDirective = (char *) malloc(sizeof(char) * (*counter));
+    finalDirective = (char *) malloc(sizeof(char) * (*counter)+1);
     strncpy(finalDirective, originalLine, *counter);
     finalDirective[*counter] = 0;
     if (strcmp(finalDirective, type) == 0) {
@@ -582,11 +583,11 @@ int checkIsDirective(char *line, const char *originalLine, char *finalDirective,
 
 int isEntryDirective(char *line, char **labelEntry) {
 
-    char *originalLine, *directiveStatement, *finalDirective = NULL;
+    char *originalLine, *directiveStatement;
     int counter = 0;
     if (strchr(line, '.')) {
         originalLine = line;
-        if (checkIsDirective(line, originalLine, finalDirective, &counter, ENTRY)) {
+        if (checkIsDirective(line, originalLine, &counter, ENTRY)) {
             extractOperand(line, labelEntry, originalLine, counter);
             return 1;
         }
@@ -595,7 +596,7 @@ int isEntryDirective(char *line, char **labelEntry) {
         directiveStatement = skipWhitesSpaces(directiveStatement);
         originalLine = directiveStatement;
         if (strchr(directiveStatement, '.')) {
-            if (checkIsDirective(directiveStatement, originalLine, finalDirective, &counter, ENTRY)) {
+            if (checkIsDirective(directiveStatement, originalLine, &counter, ENTRY)) {
                 extractOperand(line, labelEntry, originalLine, counter);
                 return 1;
             }
@@ -606,11 +607,11 @@ int isEntryDirective(char *line, char **labelEntry) {
 
 
 int isExternDirective(char *line, char **label, int *errorCounter) {
-    char *originalLine, *directiveStatement, *finalDirective = NULL;
+    char *originalLine, *directiveStatement;
     int counter = 0;
     if (strchr(line, '.')) {
         originalLine = line;
-        if (checkIsDirective(line, originalLine, finalDirective, &counter, EXTERN)) {
+        if (checkIsDirective(line, originalLine, &counter, EXTERN)) {
             extractOperand(line, label, originalLine, counter);
             return 1;
         }
@@ -620,7 +621,7 @@ int isExternDirective(char *line, char **label, int *errorCounter) {
         originalLine = directiveStatement;
         if (strchr(directiveStatement, '.')) {
 
-            if (checkIsDirective(directiveStatement, originalLine, finalDirective, &counter, EXTERN)) {
+            if (checkIsDirective(directiveStatement, originalLine, &counter, EXTERN)) {
                 extractOperand(line, label, originalLine, counter);
                 return 1;
             }

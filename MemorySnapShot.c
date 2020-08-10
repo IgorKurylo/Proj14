@@ -115,11 +115,8 @@ void saveData(unsigned int value) {
 
 char **initExternalLabels(int sizeOfIC) {
     int index = 0;
-    externalLabels = (char **) malloc(sizeof(char) * sizeOfIC);
+    externalLabels = (char **) malloc(sizeof(char*) * sizeOfIC);
     if (externalLabels != NULL) {
-        for (index = 0; index < sizeOfIC; index++) {
-            externalLabels[index] = "";
-        }
         return externalLabels;
     } else {
         return NULL;

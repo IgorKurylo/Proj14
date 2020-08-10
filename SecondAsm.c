@@ -17,7 +17,7 @@ void buildMachineCodeDirective(int lineNumber, char *data, int directiveType, in
 
 void adaptOffsetsByAddressType(int destAddressType, int srcAddressType, int *srcOffset, int *destOffset);
 
-void updateExternalLabelAddress(const int *IC, int srcOffset, int destOffset, int isSrcExternalLabel,
+void updateExternalLabelAddress(int IC, int isSrcExternalLabel,
                                 int isDestExternalLabel, char *firstOperand, char *secondOperand);
 
 // second read of the asm file
@@ -99,6 +99,8 @@ int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
                             }
                         }
                         srcOffset = calculateOffsetAddress(srcAddressType);
+                        updateExternalLabelAddress(*IC+srcOffset+1, isSrcExternalLabel, isDestExternalLabel,
+                                                   firstOperand, secondOperand);
                     }
                 }
                 if (secondOperand != NULL) {
@@ -116,6 +118,8 @@ int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
                             }
                         }
                         destOffset = calculateOffsetAddress(destAddressType);
+                        updateExternalLabelAddress(*IC+destOffset+1, isSrcExternalLabel, isDestExternalLabel,
+                                                   firstOperand, secondOperand);
                     }
                 }
 
@@ -156,9 +160,9 @@ int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
                     saveWord(convertTo2Complement(valueSrc), srcAddressType, -1);
                 }
                 adaptOffsetsByAddressType(destAddressType, srcAddressType, &srcOffset, &destOffset);
-                updateExternalLabelAddress(IC, srcOffset, destOffset, isSrcExternalLabel, isDestExternalLabel,
-                                           firstOperand, secondOperand);
+
                 *IC += srcOffset + destOffset + 1;
+
                 break;
             default:
                 break;
@@ -168,17 +172,18 @@ int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
 
 }
 
-void updateExternalLabelAddress(const int *IC, int srcOffset, int destOffset, int isSrcExternalLabel,
+void updateExternalLabelAddress(int IC, int isSrcExternalLabel,
                                 int isDestExternalLabel, char *firstOperand, char *secondOperand) {
+
     if (isSrcExternalLabel && isDestExternalLabel) {
-        addExternalLabel(*IC + srcOffset, firstOperand);
-        addExternalLabel(*IC + srcOffset + destOffset, firstOperand);
-    }
-    if (isSrcExternalLabel) {
-        addExternalLabel(*IC + srcOffset, firstOperand);
-    }
-    if (isDestExternalLabel) {
-        addExternalLabel(*IC + destOffset, secondOperand);
+        // the two of operand is external so the take two words
+        // adding offset 1 to IC  for a second label
+        addExternalLabel(IC, firstOperand);
+        addExternalLabel(IC+1, secondOperand);
+    } else if (isSrcExternalLabel) {
+        addExternalLabel(IC, firstOperand);
+    } else if (isDestExternalLabel) {
+        addExternalLabel(IC, secondOperand);
     }
 }
 

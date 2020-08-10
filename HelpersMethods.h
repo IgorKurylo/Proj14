@@ -51,7 +51,7 @@ void createMachineCode2(char *command, HashMap *commandObj, int sourceAddressTyp
 
 int isEntryDirective(char *line, char **labelEntry);
 
-int checkIsDirective(char *line, const char *originalLine, char *finalDirective, int *counter, const char *type);
+int checkIsDirective(char *line, const char *originalLine, int *counter, const char *type);
 
 void extractOperand(char *line, char **label, char *originalLine, int counter);
 
