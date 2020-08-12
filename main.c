@@ -9,9 +9,9 @@
 
 SymbolTable *table;
 int tableSize;
-MachineCode *machineCode;
+char **externalLabels;
+int *memoryCodeArray;
 int machineCodeSize;
-
 void printSymbolTable();
 
 int main(int argc, char *argv[]) {
@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
                         fileName = getFileName(argv[i]);
                         writeExternFile(externalLabels, ICF, fileName);
                         fileName = getFileName(argv[i]);
-                        writeMachineCodeFile(ICF,DCF,machineCode,fileName);
+                        writeMachineCodeFile(ICF, DCF, memoryCodeArray, fileName);
 
                     }
 

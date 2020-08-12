@@ -61,7 +61,7 @@ void convertToBase16(int number);
 
 int convertToBase2(int number);
 
-int convertTo2Complement(int number);
+int convertTo2Complement(int value);
 
 int isValueNumber(char *operand);
 

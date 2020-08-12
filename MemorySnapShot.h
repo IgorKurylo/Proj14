@@ -29,11 +29,9 @@ typedef struct {
     unsigned int extraWord: 21;
 } Word;
 typedef struct {
-    union {
-        Instruction instruction_object;
-        Word extraWord;
-        Data data;
-    };
+
+    Instruction instruction_object;
+
 } MachineCode;
 
 
@@ -41,7 +39,8 @@ extern int dataSnapShotMemory[MAX_DATA];
 extern int dataSize;
 extern MachineCode *machineCode;
 extern int machineCodeSize;
-extern char** externalLabels;
+extern char **externalLabels;
+extern int *memoryCodeArray;
 
 int *saveToSnapShotMemory(char *data, int directiveType, int *DC, int *deltaCounter, int *errorCounter, int lineNumber);
 
@@ -55,9 +54,10 @@ void saveWord(unsigned int value, unsigned int addressType,
 
 void saveData(unsigned int value);
 
-MachineCode *initMachineMemoryCode(int sizeOfMachineCode);
+int *initMachineMemoryCode(int sizeOfMachineCode);
 
 char **initExternalLabels(int sizeOfIC);
+
 void addExternalLabel(int IC, char *label);
 
 

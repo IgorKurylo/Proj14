@@ -11,22 +11,22 @@
 const char *registers[] = {"r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7"};
 const HashMap asm_commands[] =
         {
-                {"mov",  {0,  0,  2}},
-                {"cmp",  {1,  0,  2}},
-                {"add",  {2,  1,  2}},
-                {"sub",  {2,  2,  2}},
-                {"lea",  {4,  0,  2}},
-                {"clr",  {5,  1,  1}},
-                {"not",  {5,  2,  1}},
-                {"inc",  {5,  3,  1}},
-                {"dec",  {5,  4,  1}},
-                {"jmp",  {9,  1,  1}},
-                {"bne",  {9,  2,  1}},
-                {"jsr",  {9,  3,  1}},
-                {"red",  {12, -1, 0}},
-                {"prn",  {13, -1, 1}},
-                {"rst",  {14, -1, 0}},
-                {"stop", {15, -1, 0}},
+                {"mov",  {0,  0, 2}},
+                {"cmp",  {1,  0, 2}},
+                {"add",  {2,  1, 2}},
+                {"sub",  {2,  2, 2}},
+                {"lea",  {4,  0, 2}},
+                {"clr",  {5,  1, 1}},
+                {"not",  {5,  2, 1}},
+                {"inc",  {5,  3, 1}},
+                {"dec",  {5,  4, 1}},
+                {"jmp",  {9,  1, 1}},
+                {"bne",  {9,  2, 1}},
+                {"jsr",  {9,  3, 1}},
+                {"red",  {12, 0, 0}},
+                {"prn",  {13, 0, 1}},
+                {"rst",  {14, 0, 0}},
+                {"stop", {15, 0, 0}},
                 {NULL}
         };
 
@@ -90,10 +90,12 @@ int convertToBase2(int value) {
 }
 
 int convertTo2Complement(int value) {
-    unsigned char result;
+
     if (value < 0) {
-        result = ~(value * (-1)) + 1;
-        return result;
+        value *= -1;
+        value =~value;
+        value += 1;
+        return value;
     } else {
         return (int) value;
     }
@@ -252,7 +254,7 @@ int numberValidation(char *number_value, int *value, int lineNumber, int *errorC
     if (value != NULL) {
         *value = (int) strtol(number_value, &end, 10);
         if (*value > maxNum || *value < -maxNum) {
-            printf(" [ERROR] line  %d: %s is %s , the number_operand must be in the range %d - %d \n", lineNumber,
+            printf(" [ERROR] line  %d: %s is %s , the number must be in the range %d - %d \n", lineNumber,
                    number_value,
                    value > 0 ? "bigger" : "smaller", -maxNum,
                    maxNum);
@@ -261,7 +263,7 @@ int numberValidation(char *number_value, int *value, int lineNumber, int *errorC
     } else {
         valueLocal = (int) strtol(number_value, &end, 10);
         if (valueLocal > maxNum || valueLocal < -maxNum) {
-            printf(" [ERROR] line  %d:%s is %s , the number_operand must be in the range %d - %d \n", lineNumber,
+            printf(" [ERROR] line  %d:%s is %s ,the number must be in the range %d - %d \n", lineNumber,
                    number_value,
                    value > 0 ? "bigger" : "smaller", -maxNum,
                    maxNum);
@@ -269,12 +271,11 @@ int numberValidation(char *number_value, int *value, int lineNumber, int *errorC
         }
     }
     if (end && *end != '\0') {
-        printf("[ERROR] line  %d: %s is not a valid number_operand \n ", lineNumber, number_value);
+        printf("[ERROR] line  %d: %s is not a valid number \n ", lineNumber, number_value);
         (*errorCounter)++;
         return 0;
     }
-    convertTo2Complement(*value);
-
+//    convertTo2Complement(*value);
     return 1;
 }
 
@@ -564,12 +565,12 @@ void extractOperand(char *line, char **label, char *originalLine, int counter) {
 }
 
 int checkIsDirective(char *line, const char *originalLine, int *counter, const char *type) {
-    char *finalDirective=NULL;
+    char *finalDirective = NULL;
     while (*line != ' ') {
         (*counter)++;
         line++;
     }
-    finalDirective = (char *) malloc(sizeof(char) * (*counter)+1);
+    finalDirective = (char *) malloc(sizeof(char) * (*counter) + 1);
     strncpy(finalDirective, originalLine, *counter);
     finalDirective[*counter] = 0;
     if (strcmp(finalDirective, type) == 0) {

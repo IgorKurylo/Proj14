@@ -31,7 +31,7 @@ AsmFileContent *fileContent(FILE *file, int *fileLines);
 
 void writeFile(FILE *file, char *buffer, char *format);
 
-void writeMachineCodeFile(int IC, int DC, MachineCode *machineCode,char *fileName);
+void writeMachineCodeFile(int IC, int DC, const int *machineCode,char *fileName);
 
 void writeEntryFile(SymbolTable *table, int tableSize, char *fileName);
 

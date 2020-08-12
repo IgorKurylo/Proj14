@@ -11,7 +11,7 @@
 
 void buildMachineCodeOneOperand(const int *IC, int lineNumber, char *firstOperand,
                                 int labelAddress, int isDistanceLabel, int symbolIndex, const int *destAddressType,
-                                const int *operandType, int *destOffset, HashMap command);
+                                const int *operandType, int *destOffset, HashMap command,int valueDest);
 
 void buildMachineCodeDirective(int lineNumber, char *data, int directiveType, int *errorCounter);
 
@@ -70,7 +70,7 @@ int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
                         buildMachineCodeOneOperand(IC, lineNumber, firstOperand, labelDestAddress,
                                                    isDistanceLabel, symbolIndex,
                                                    &destAddressType, &operandDestType, &destOffset,
-                                                   commandObj);
+                                                   commandObj,valueDest);
 
 
                     }
@@ -99,7 +99,7 @@ int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
                             }
                         }
                         srcOffset = calculateOffsetAddress(srcAddressType);
-                        updateExternalLabelAddress(*IC+srcOffset+1, isSrcExternalLabel, isDestExternalLabel,
+                        updateExternalLabelAddress(*IC + srcOffset + 1, isSrcExternalLabel, isDestExternalLabel,
                                                    firstOperand, secondOperand);
                     }
                 }
@@ -118,7 +118,7 @@ int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
                             }
                         }
                         destOffset = calculateOffsetAddress(destAddressType);
-                        updateExternalLabelAddress(*IC+destOffset+1, isSrcExternalLabel, isDestExternalLabel,
+                        updateExternalLabelAddress(*IC + destOffset + 1, isSrcExternalLabel, isDestExternalLabel,
                                                    firstOperand, secondOperand);
                     }
                 }
@@ -179,7 +179,7 @@ void updateExternalLabelAddress(int IC, int isSrcExternalLabel,
         // the two of operand is external so the take two words
         // adding offset 1 to IC  for a second label
         addExternalLabel(IC, firstOperand);
-        addExternalLabel(IC+1, secondOperand);
+        addExternalLabel(IC + 1, secondOperand);
     } else if (isSrcExternalLabel) {
         addExternalLabel(IC, firstOperand);
     } else if (isDestExternalLabel) {
@@ -200,11 +200,11 @@ void adaptOffsetsByAddressType(int destAddressType, int srcAddressType, int *src
     }
 }
 
-
+// build machine code on one operand
 void buildMachineCodeOneOperand(const int *IC, int lineNumber, char *firstOperand,
                                 int labelAddress, int isDistanceLabel, int symbolIndex, const int *destAddressType,
-                                const int *operandType, int *destOffset, HashMap command) {
-    int regDest = -1, distanceOfJmpCommands = -1, value = 0;
+                                const int *operandType, int *destOffset, HashMap command,int valueDest) {
+    int regDest = -1, distanceOfJmpCommands = -1, value = 0,tempIC=0;
     if ((*operandType) == label_operand) {
         if (strchr(firstOperand, '&')) {
             firstOperand++;
@@ -218,9 +218,10 @@ void buildMachineCodeOneOperand(const int *IC, int lineNumber, char *firstOperan
             (*destOffset) = calculateOffsetAddress((*destAddressType));
             saveInstruction(command.value.opCode, command.value.funct, 0, 0, 0, *destAddressType);
             if (isDistanceLabel) {
-                distanceOfJmpCommands = labelAddress - *IC;
+                distanceOfJmpCommands = labelAddress - (*IC + *destOffset + INIT_ADDRESS);
                 //build machine code with this distance value
-                saveWord(distanceOfJmpCommands, *destAddressType,
+                value=convertTo2Complement(distanceOfJmpCommands); // convert to 2 complement the distance can be negative
+                saveWord(value, *destAddressType,
                          table[symbolIndex].is_extern);
             } else {
                 saveWord(labelAddress, *destAddressType,
@@ -234,7 +235,7 @@ void buildMachineCodeOneOperand(const int *IC, int lineNumber, char *firstOperan
         saveInstruction(command.value.opCode, command.value.funct, 0, 0, regDest, *destAddressType);
     } else if ((*operandType) == number_operand) {
         saveInstruction(command.value.opCode, command.value.funct, 0, 0, 0, 0);
-        saveWord(convertTo2Complement(value), *destAddressType, table[symbolIndex].is_extern);
+        saveWord(convertTo2Complement(valueDest), *destAddressType, table[symbolIndex].is_extern);
     }
 
 }

@@ -6,6 +6,8 @@
 #include <string.h>
 #include "FileMethods.h"
 
+void printBits(int a);
+
 FILE *readFile(char *fileName, char *extension) {
 
     FILE *asmFile = NULL;
@@ -89,9 +91,28 @@ char *getFileName(char *file) {
     }
 }
 
-void writeMachineCodeFile(int IC, int DC, MachineCode *machine_code, char *fileName) {
+void writeMachineCodeFile(int IC, int DC, const int *machine_code, char *fileName) {
+    int index = 0,Value = 0;
     FILE *filePtr;
     strcat(fileName, OBJECT_FILE);
     filePtr = fopen(fileName, "w");
-    fprintf(filePtr, "%5d\t%d\n", IC, DC);
+    fprintf(filePtr, "%7d\t%d\n", IC, DC);
+    for (index = 0; index < machineCodeSize && index<(IC+DC); index++) {
+        Value = machine_code[index];
+        fprintf(filePtr, "%07d\t%06x\n", index + INIT_ADDRESS, Value);
+    }
+    printf("[INFO] File %s successfully created\n", fileName);
+    fclose(filePtr);
+
+}
+
+void printBits(int a) {
+    int i = 0;
+    for (i = 23; i >= 0; i--) {
+        if ((a & (1 << i)) != 0) {
+            putchar('1');
+        } else {
+            putchar('0');
+        }
+    }
 }
