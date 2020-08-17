@@ -25,7 +25,7 @@ char *parseLabel(char *line, char **labelName, int lineNumber, int *errorsCounte
 
 int isAlphaNumeric(const char *str);
 
-int numberValidation(char *number_value, int *value, int lineNumber, int *errorCounter);
+int numberValidation(char *number_value,int memorySize, int *value, int lineNumber, int *errorCounter);
 
 int stringValidation(char **string, int lineNumber, int *errorCounter);
 
@@ -75,4 +75,7 @@ void parseTwoOperands(char *operands, char **firstOperand, char **secondOperand)
 
 int isJmpCommand(char *command);
 
+int isDataFormattingCorrect(char *directiveData,int *errorCounter,int lineNumber);
+
+void validateImmediateSize(int lineNumber, int *errorCounter,  char *operand, int addressType,int *value);
 #endif //PROJECTMAMAN14_HELPERSMETHODS_H

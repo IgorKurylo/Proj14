@@ -31,10 +31,11 @@ saveToSnapShotMemory(char *data, int directiveType, int *DC, int *deltaCounter, 
         case DATA_DIRECTIVE:
             numberStr = strtok(data, DELIM);
             while (numberStr) {
-                if (numberValidation(numberStr, &value, lineNumber, errorCounter)) {
+                if (numberValidation(numberStr,MEMORY_WORD_SIZE, &value, lineNumber, errorCounter)) {
                     dataSnapShotMemory[counterOfData] = value;
-                    //addDataToMachineCode(value);
                     ++counterOfData;
+                    numberStr = strtok(NULL, DELIM);
+                }else{
                     numberStr = strtok(NULL, DELIM);
                 }
             }

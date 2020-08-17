@@ -11,7 +11,7 @@
 
 void buildMachineCodeOneOperand(const int *IC, int lineNumber, char *firstOperand,
                                 int labelAddress, int isDistanceLabel, int symbolIndex, const int *destAddressType,
-                                const int *operandType, int *destOffset, HashMap command,int valueDest);
+                                const int *operandType, int *destOffset, HashMap command, int valueDest);
 
 void buildMachineCodeDirective(int lineNumber, char *data, int directiveType, int *errorCounter);
 
@@ -70,7 +70,7 @@ int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
                         buildMachineCodeOneOperand(IC, lineNumber, firstOperand, labelDestAddress,
                                                    isDistanceLabel, symbolIndex,
                                                    &destAddressType, &operandDestType, &destOffset,
-                                                   commandObj,valueDest);
+                                                   commandObj, valueDest);
 
 
                     }
@@ -203,8 +203,8 @@ void adaptOffsetsByAddressType(int destAddressType, int srcAddressType, int *src
 // build machine code on one operand
 void buildMachineCodeOneOperand(const int *IC, int lineNumber, char *firstOperand,
                                 int labelAddress, int isDistanceLabel, int symbolIndex, const int *destAddressType,
-                                const int *operandType, int *destOffset, HashMap command,int valueDest) {
-    int regDest = -1, distanceOfJmpCommands = -1, value = 0,tempIC=0;
+                                const int *operandType, int *destOffset, HashMap command, int valueDest) {
+    int regDest = -1, distanceOfJmpCommands = -1, value = 0, tempIC = 0;
     if ((*operandType) == label_operand) {
         if (strchr(firstOperand, '&')) {
             firstOperand++;
@@ -220,7 +220,8 @@ void buildMachineCodeOneOperand(const int *IC, int lineNumber, char *firstOperan
             if (isDistanceLabel) {
                 distanceOfJmpCommands = labelAddress - (*IC + *destOffset + INIT_ADDRESS);
                 //build machine code with this distance value
-                value=convertTo2Complement(distanceOfJmpCommands); // convert to 2 complement the distance can be negative
+                value = convertTo2Complement(
+                        distanceOfJmpCommands); // convert to 2 complement the distance can be negative
                 saveWord(value, *destAddressType,
                          table[symbolIndex].is_extern);
             } else {
@@ -248,8 +249,10 @@ void buildMachineCodeDirective(int lineNumber, char *data, int directiveType, in
         case DATA_DIRECTIVE:
             numberStr = strtok(data, DELIM);
             while (numberStr) {
-                if (numberValidation(numberStr, &value, lineNumber, errorCounter)) {
+                if (numberValidation(numberStr, MEMORY_WORD_SIZE ,& value, lineNumber, errorCounter)) {
                     saveData(convertTo2Complement(value));
+                    numberStr = strtok(NULL, DELIM);
+                } else {
                     numberStr = strtok(NULL, DELIM);
                 }
             }

@@ -14,6 +14,8 @@ int *memoryCodeArray;
 int machineCodeSize;
 void printSymbolTable();
 
+void generateOutputFiles(char *const *argv, int i, int ICF, int DCF, char *fileName);
+
 int main(int argc, char *argv[]) {
 
     int numberOfFiles = argc, fileLines = 0, i = 0, index = 0, IC = 0, DC = 0, ICF = 0, DCF = 0, errorsFirstRead = 0, errorSecondRead = 0;
@@ -37,9 +39,10 @@ int main(int argc, char *argv[]) {
                     for (index = 0; index < fileLines; index++) {
                         errorsFirstRead += firstRead(asmContentFile[index], &IC, &DC, index);
                     }
+                    //print errors if we find it in first read, if not save the IC & DC final values.
                     if (errorsFirstRead > 0) {
-                        printf("Errors found %d\n", errorsFirstRead);
-                        printf("See all errors messages and warnings ,fix and run again\n");
+                        printf("[INFO] Errors found %d\n", errorsFirstRead);
+                        printf("[INFO] See all errors messages and warnings ,fix and run again\n");
                         exit(-1);
                     } else {
                         ICF = IC;
@@ -48,8 +51,6 @@ int main(int argc, char *argv[]) {
                         updateSymbolTable((INIT_ADDRESS + IC));
                         printf("\n");
                         printSymbolTable();
-                        printf("Final Instructor Counter %d\n", ICF);
-                        printf("Final Data Counter %d\n", DCF);
                     }
                     IC = 0;
                     if (initMachineMemoryCode(ICF) != NULL && initExternalLabels(ICF) != NULL) {
@@ -58,16 +59,11 @@ int main(int argc, char *argv[]) {
                         }
                     }
                     if (errorSecondRead > 0) {
-                        printf("Errors found %d\n", errorSecondRead);
-                        printf("See all errors messages and warnings ,fix and run again\n");
+                        printf("[INFO] Errors found %d\n", errorSecondRead);
+                        printf("[INFO] See all errors messages and warnings ,fix and run again\n");
+                        exit(-1);
                     } else {
-                        fileName = getFileName(argv[i]);
-                        writeEntryFile(table, tableSize, fileName);
-                        fileName = getFileName(argv[i]);
-                        writeExternFile(externalLabels, ICF, fileName);
-                        fileName = getFileName(argv[i]);
-                        writeMachineCodeFile(ICF, DCF, memoryCodeArray, fileName);
-
+                        generateOutputFiles(argv, i, ICF, DCF, fileName);
                     }
 
                 }
@@ -81,6 +77,15 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
+void generateOutputFiles(char *const *argv, int i, int ICF, int DCF, char *fileName) {
+    fileName = getFileName(argv[i]);
+    writeEntryFile(table, tableSize, fileName);
+    fileName = getFileName(argv[i]);
+    writeExternFile(externalLabels, ICF, fileName);
+    fileName = getFileName(argv[i]);
+    writeMachineCodeFile(ICF, DCF, memoryCodeArray, fileName);
+}
+
 
 void printSymbolTable() {
     int i = 0;
@@ -90,7 +95,7 @@ void printSymbolTable() {
         for (i = 0; i < tableSize; i++) {
 
             printf("%5s\t%3d\t\t%5s %s\n", table[i].name, table[i].address,
-                   table[i].type == symbol_code ? "code" : table[i].type == symbol_data ? "Data" : "",
+                   table[i].type == symbol_code ? "code" : table[i].type == symbol_data ? "data" : "",
                    table[i].is_extern ? "external" : table[i].is_entry ? "entry" : "");
         }
     }

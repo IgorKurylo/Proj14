@@ -30,6 +30,9 @@ const HashMap asm_commands[] =
                 {NULL}
         };
 
+
+void adjustOffsetOfSrcDest(int sourceAddressType, int destAddressType, int *srcOffset, int *destOffset);
+
 char *skipWhitesSpaces(char *line) {
     while ((*line == ' ') || (*line == '\t')) {
         line++;
@@ -75,7 +78,7 @@ int isComment(const char *line) {
 }
 
 int convertToBase2(int value) {
-    int carry = 0, index = 15, counter = 0; // todo: with realloc?
+    int carry = 0, index = 15, counter = 0;
     char b[15];
     while (value > 0) {
         carry = value % 2;
@@ -93,11 +96,11 @@ int convertTo2Complement(int value) {
 
     if (value < 0) {
         value *= -1;
-        value =~value;
+        value = ~value;
         value += 1;
         return value;
     } else {
-        return (int) value;
+        return value;
     }
 }
 
@@ -246,26 +249,29 @@ int stringValidation(char **string, int lineNumber, int *errorCounter) {
     return 1;
 }
 
-int numberValidation(char *number_value, int *value, int lineNumber, int *errorCounter) {
+int numberValidation(char *number_value, int memorySize, int *value, int lineNumber, int *errorCounter) {
 
-    int maxNum = (1 << MEMORY_WORD_SIZE) - 1;
+    int maxNum = (1 << (memorySize - 1));
     char *end;
     int valueLocal = 0;
     if (value != NULL) {
         *value = (int) strtol(number_value, &end, 10);
-        if (*value > maxNum || *value < -maxNum) {
-            printf(" [ERROR] line  %d: %s is %s , the number must be in the range %d - %d \n", lineNumber,
+        if (*value >= maxNum || *value <= -maxNum) {
+            (*errorCounter)++;
+            printf("[ERROR] line %d: %s is %s, the number must be in the range [%d to %d] \n", lineNumber,
                    number_value,
-                   value > 0 ? "bigger" : "smaller", -maxNum,
+                   *value > 0 ? "bigger" : "smaller", -maxNum,
                    maxNum);
+
             return 0;
         }
     } else {
         valueLocal = (int) strtol(number_value, &end, 10);
-        if (valueLocal > maxNum || valueLocal < -maxNum) {
-            printf(" [ERROR] line  %d:%s is %s ,the number must be in the range %d - %d \n", lineNumber,
+        if (valueLocal >= maxNum || valueLocal <= -maxNum) {
+            (*errorCounter)++;
+            printf("[ERROR] line  %d:%s is %s ,the number must be in the range %d to %d \n", lineNumber,
                    number_value,
-                   value > 0 ? "bigger" : "smaller", -maxNum,
+                   *value > 0 ? "bigger" : "smaller", -maxNum,
                    maxNum);
             return 0;
         }
@@ -275,27 +281,28 @@ int numberValidation(char *number_value, int *value, int lineNumber, int *errorC
         (*errorCounter)++;
         return 0;
     }
-//    convertTo2Complement(*value);
     return 1;
 }
 
 int isValueNumber(char *operand, int *value, int line, int *errorCounter) {
     char *sighNumber;
     sighNumber = strchr(operand, '#');
-
     if (sighNumber != NULL) {
         operand++;
         if (*operand == '+') {
             operand++;
-            if (numberValidation(operand, value, line, errorCounter)) {
+
+            if (numberValidation(operand, MEMORY_WORD_SIZE, value, line, errorCounter)) {
                 return 1;
             }
         } else if (*operand == '-') {
-            if (numberValidation(operand, value, line, errorCounter)) {
+
+            if (numberValidation(operand, MEMORY_WORD_SIZE, value, line, errorCounter)) {
                 return 1;
             }
         } else {
-            if (numberValidation(operand, value, line, errorCounter)) {
+
+            if (numberValidation(operand, MEMORY_WORD_SIZE, value, line, errorCounter)) {
                 return 1;
             }
         }
@@ -314,13 +321,7 @@ int validateOperand(char *operand, int *addressType, int line, int *errorCounter
         *addressType = REG_ADDRESSING;
         *operandType = register_operand;
         return 1;
-    } else if (isJumpToLabelSymbol(operand)) { // if the operand have a & symbol
-        operand++;
-        if (isAlphaNumeric(operand)) {
-            *addressType = RELATIVE_ADDRESSING;
-            *operandType = label_operand;
-            return 1;
-        }
+
     } else if (isAlphaNumeric(operand)) {
         *addressType = DIRECT_ADDRESSING;
         *operandType = label_operand;
@@ -370,6 +371,19 @@ void parseOneOperand(char *operands, char **oneOperand) {
 
 }
 
+void validateImmediateSize(int lineNumber, int *errorCounter, char *operand, int addressType, int *value) {
+    if (addressType == IMMEDIATE_ADDRESSING) {
+        if (strchr(operand, '#') != NULL) {
+            operand++;
+        }
+        if (!numberValidation(operand, MEMORY_WORD_SIZE - 3, value, lineNumber, errorCounter)) {
+            printf("[ERROR] line %d: Invalid %s number size,too %s to fit in %d bits\n", lineNumber, operand,
+                   (*value > 0) ? "high" : "low", MEMORY_WORD_SIZE - 3); // 21 bits
+        }
+    }
+
+}
+
 int calculateOffsetAddress(int addressType) {
     int offSet = 0;
     switch (addressType) {
@@ -406,12 +420,12 @@ int parseOperands(char *operands, char *command, int numOfOperand, int lineNumbe
             }
             return 1;
         case 1:
-            // get operand after a command
-            if (isJmpCommand(command)) {
+            // if Jmp Command with & symbol near the operand
+            if (isJmpCommand(command) && isJumpToLabelSymbol(command)) {
                 destAddressType = RELATIVE_ADDRESSING;
                 destOffset = calculateOffsetAddress(destAddressType);
                 if (!validateCommandAddressType(command, sourceAddressType, destAddressType)) {
-                    printf("[ERROR] line %d: Too many operands  to %s command", lineNumber, command);
+                    printf("[ERROR] line %d: Too many operands to %s command", lineNumber, command);
                     (*errorCounter)++;
                 }
             } else {
@@ -425,7 +439,7 @@ int parseOperands(char *operands, char *command, int numOfOperand, int lineNumbe
                             (*errorCounter)++;
                         }
                         if (!validateCommandAddressType(command, sourceAddressType, destAddressType)) {
-                            printf("[ERROR] line %d: Too many operands  to %s command\n", lineNumber, command);
+                            printf("[ERROR] line %d: Too many operands to %s command\n", lineNumber, command);
                             (*errorCounter)++;
                         }
                     } else {
@@ -460,6 +474,7 @@ int parseOperands(char *operands, char *command, int numOfOperand, int lineNumbe
                     printf("[ERROR] line %d: Operand %s invalid \n", lineNumber, firstOp);
                     (*errorCounter)++;
                 }
+                validateImmediateSize(lineNumber, errorCounter, firstOp, sourceAddressType, &valueSrc);
             }
             if (secondOp != NULL) {
                 if (validateOperand(secondOp, &destAddressType, lineNumber, errorCounter, &valueDest,
@@ -482,15 +497,10 @@ int parseOperands(char *operands, char *command, int numOfOperand, int lineNumbe
                 printf("[ERROR] line %d: Too many operands  to %s command \n", lineNumber, command);
                 (*errorCounter)++;
             }
-            if (sourceAddressType == REG_ADDRESSING && destAddressType == REG_ADDRESSING) {
-                destOffset = 0;
-                srcOffset = 0;
+            validateImmediateSize(lineNumber, errorCounter, secondOp, destAddressType, &valueDest);
 
-            } else if (sourceAddressType == REG_ADDRESSING && destAddressType != REG_ADDRESSING) {
-                srcOffset = 0;
-            } else if (sourceAddressType != REG_ADDRESSING && destAddressType == REG_ADDRESSING) {
-                destOffset = 0;
-            }
+            adjustOffsetOfSrcDest(sourceAddressType, destAddressType, &srcOffset, &destOffset);
+
             *IC += srcOffset + destOffset + 1;
             return 1;
         default:
@@ -499,6 +509,18 @@ int parseOperands(char *operands, char *command, int numOfOperand, int lineNumbe
 
     return 1;
 
+}
+
+void adjustOffsetOfSrcDest(int sourceAddressType, int destAddressType, int *srcOffset, int *destOffset) {
+    if (sourceAddressType == REG_ADDRESSING && destAddressType == REG_ADDRESSING) {
+        (*destOffset) = 0;
+        (*srcOffset) = 0;
+
+    } else if (sourceAddressType == REG_ADDRESSING && destAddressType != REG_ADDRESSING) {
+        (*srcOffset) = 0;
+    } else if (sourceAddressType != REG_ADDRESSING && destAddressType == REG_ADDRESSING) {
+        (*destOffset) = 0;
+    }
 }
 
 
@@ -522,7 +544,7 @@ int parseCommand(char *line, char **command, int lineNumber, int *numOfOperand, 
     /* if no spaces between command and operands, return 0 for throw exception */
     if (counter == 0) {
         printf("[ERROR] line %d: No spaces between command and operands\n", lineNumber);
-        *errorCounter++;
+        (*errorCounter)++;
         return 0;
     }
     parserCommand = (char *) malloc(sizeof(char) * (counter + 1));
@@ -631,16 +653,58 @@ int isExternDirective(char *line, char **label, int *errorCounter) {
     return 0;
 }
 
+int isDataFormattingCorrect(char *directiveData, int *errorCounter, int lineNumber) {
+    int i = 0, j = 0, delim_counter = 0;
+
+    if (*directiveData == ',') {
+        printf("[ERROR] line %d: Can't write char %s in start of data directive \n", lineNumber, DELIM);
+        (*errorCounter)++;
+        return 0;
+    } else {
+
+        if (*(directiveData + strlen(directiveData) - 1) == ',') {
+            printf("[ERROR] line %d: Can't write char %s in end of data directive \n", lineNumber, DELIM);
+            (*errorCounter)++;
+            return 0;
+        }
+    }
+    for (i = 0; i < strlen(directiveData); i++) {
+
+        while (directiveData[j] >= '0' && directiveData[j] <= '9') {
+            j++;
+        }
+        if (directiveData[j] == DELIM_CHAR) {
+            delim_counter++;
+            i = j;
+            j++;
+        }
+        if (directiveData[j] == ' ') {
+            j++;
+            i = j;
+        }
+    }
+    if (delim_counter >= 2) {
+        printf("[ERROR] line %d: Can't write char %s twice between number in data directive\n", lineNumber, DELIM);
+        (*errorCounter)++;
+        return 0;
+    }
+    return 1;
+
+}
+
 
 int populateDataDirective(int *DC, int directiveType, char *directiveDefinedData, int *errorCounter, int linerNumber) {
     int *snapShotMemory, deltaDataCounter = 0;
-    snapShotMemory = saveToSnapShotMemory(directiveDefinedData, directiveType, DC, &deltaDataCounter, errorCounter,
-                                          linerNumber);
-    if (snapShotMemory == NULL) {
+    if (isDataFormattingCorrect(directiveDefinedData, errorCounter, linerNumber)) {
+        snapShotMemory = saveToSnapShotMemory(directiveDefinedData, directiveType, DC, &deltaDataCounter, errorCounter,
+                                              linerNumber);
+        if (snapShotMemory == NULL) {
 
-        *errorCounter++;
-        printf("[ERROR] line %d : Can't add Data to Data memory block\n ", linerNumber);
+            *errorCounter++;
+            printf("[ERROR] line %d : Can't add Data to Data memory block\n ", linerNumber);
+        }
     }
+
     return deltaDataCounter;
 }
 
