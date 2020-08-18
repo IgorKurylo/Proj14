@@ -43,12 +43,6 @@ int validateOperand(char *operand, int *addressType, int line, int *errorCounter
 
 int validateCommandAddressType(char *command, int addressTypeSrc, int addressTypeDest);
 
-void createMachineCode(char *firstOp, HashMap *commandObj, int destAddressType, int valueDest, int operandTypeDest,
-                       int *destExtraWord, int destOperand);
-
-void createMachineCode2(char *command, HashMap *commandObj, int sourceAddressType, int destAddressType, int *valueSrc,
-                        int *valueDest, int operandTypeSrc, int operandTypeDest, int destOperand, int srcOperand);
-
 int isEntryDirective(char *line, char **labelEntry);
 
 int checkIsDirective(char *line, const char *originalLine, int *counter, const char *type);
@@ -56,8 +50,6 @@ int checkIsDirective(char *line, const char *originalLine, int *counter, const c
 void extractOperand(char *line, char **label, char *originalLine, int counter);
 
 int isNumber(const char *str);
-
-void convertToBase16(int number);
 
 int convertToBase2(int number);
 
@@ -78,4 +70,6 @@ int isJmpCommand(char *command);
 int isDataFormattingCorrect(char *directiveData,int *errorCounter,int lineNumber);
 
 void validateImmediateSize(int lineNumber, int *errorCounter,  char *operand, int addressType,int *value);
+
+int validateJmpTypesCommandOperand(char *operand,int lineNumber,int *errorCount);
 #endif //PROJECTMAMAN14_HELPERSMETHODS_H

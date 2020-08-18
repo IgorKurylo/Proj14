@@ -7,6 +7,7 @@
 #include "MemorySnapShot.h"
 #include "Constanst.h"
 #include "DataStructers.h"
+#include "ctype.h"
 
 const char *registers[] = {"r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7"};
 const HashMap asm_commands[] =
@@ -52,9 +53,6 @@ int isAlphaNumeric(const char *str) {
     return (*str >= 'a' && *str <= 'z') || (*str >= 'A' && *str <= 'Z');
 }
 
-int isJumpToLabelSymbol(const char *str) {
-    return *str == '&';
-}
 
 int isNumber(const char *str) {
     return *str >= '0' && *str <= '9';
@@ -242,6 +240,9 @@ int stringValidation(char **string, int lineNumber, int *errorCounter) {
     } else if (**string == '\0') {
         printf("[ERROR] line %d: No Data in string directive \n", lineNumber);
         (*errorCounter)++;
+    } else if (isprint(**string)) {
+        printf("[ERROR] line %d: string contains not printable characters, %c \n", lineNumber, **string);
+        (*errorCounter)++;
     } else {
         printf("[ERROR] line %d: string must start and end with quotes \n", lineNumber);
         (*errorCounter)++;
@@ -406,6 +407,21 @@ int isJmpCommand(char *command) {
     return strcmp(command, "jmp") == 0 || strcmp(command, "bne") == 0 || strcmp(command, "jsr") == 0;
 }
 
+int validateJmpTypesCommandOperand(char *operand, int lineNumber, int *errorCounter) {
+
+    if (*operand == '&' && !isAlphaNumeric(operand + 1)) {
+        printf("[ERROR] line %d: Incomplete relative %s\n", lineNumber, operand);
+        (*errorCounter)++;
+        return 0;
+    }
+    if (*operand == '&' && *(operand + 1) == '&') {
+        printf("[ERROR] line %d: Invalid characters %s\n", lineNumber, operand);
+        (*errorCounter)++;
+        return 0;
+    }
+
+}
+
 
 int parseOperands(char *operands, char *command, int numOfOperand, int lineNumber, int *IC, int *errorCounter) {
     char *firstOp = NULL, *secondOp = NULL;
@@ -413,21 +429,26 @@ int parseOperands(char *operands, char *command, int numOfOperand, int lineNumbe
     int operandTypeSrc = -1, operandTypeDest = -1; // 0 REGISTER, 1 NUMBER, 2 LABEL
     switch (numOfOperand) {
         case 0:
-            ++(*IC);
-            if (!validateCommandAddressType(command, sourceAddressType, destAddressType)) {
-                printf("[ERROR] line %d: No operand needed to %s command", lineNumber, command);
+            if (operands == NULL) {
+                ++(*IC);
+            } else {
+                printf("[ERROR] line %d: Invalid operand, no operand needed to %s command\n", lineNumber, command);
                 (*errorCounter)++;
             }
             return 1;
         case 1:
-            // if Jmp Command with & symbol near the operand
-            if (isJmpCommand(command) && isJumpToLabelSymbol(command)) {
-                destAddressType = RELATIVE_ADDRESSING;
-                destOffset = calculateOffsetAddress(destAddressType);
-                if (!validateCommandAddressType(command, sourceAddressType, destAddressType)) {
-                    printf("[ERROR] line %d: Too many operands to %s command", lineNumber, command);
-                    (*errorCounter)++;
+            // if is from JMP command bne,jmp ,jsr, validate relative and calculate
+            if (isJmpCommand(command)) {
+                if (validateJmpTypesCommandOperand(operands, lineNumber, errorCounter)) {
+                    destAddressType = RELATIVE_ADDRESSING;
+                    destOffset = calculateOffsetAddress(destAddressType);
+                    if (!validateCommandAddressType(command, sourceAddressType, destAddressType)) {
+                        printf("[ERROR] line %d: Invalid addressing in %s command", lineNumber, command);
+                        (*errorCounter)++;
+                    }
+                    *IC += destOffset + 1;
                 }
+                return 1;
             } else {
                 parseOneOperand(operands, &firstOp);
                 if (firstOp != NULL) {
@@ -435,15 +456,15 @@ int parseOperands(char *operands, char *command, int numOfOperand, int lineNumbe
                                         &operandTypeDest) != -1) {
                         destOffset = calculateOffsetAddress(destAddressType);
                         if (destOffset == -1) {
-                            printf("[ERROR] line %d: Addressing type id  %d invalid \n", lineNumber, destAddressType);
+                            printf("[ERROR] line %d: Addressing type id %d invalid \n", lineNumber, destAddressType);
                             (*errorCounter)++;
                         }
                         if (!validateCommandAddressType(command, sourceAddressType, destAddressType)) {
-                            printf("[ERROR] line %d: Too many operands to %s command\n", lineNumber, command);
+                            printf("[ERROR] line %d: Invalid addressing in %s command\n", lineNumber, command);
                             (*errorCounter)++;
                         }
                     } else {
-                        printf(" [ERROR] line %d: Operand %s invalid \n", lineNumber, firstOp);
+                        printf("[ERROR] line %d: Operand %s invalid \n", lineNumber, firstOp);
                         (*errorCounter)++;
                     }
                 } else {
@@ -466,7 +487,7 @@ int parseOperands(char *operands, char *command, int numOfOperand, int lineNumbe
                                     &operandTypeSrc) != -1) {
                     srcOffset = calculateOffsetAddress(sourceAddressType);
                     if (srcOffset == -1) {
-                        printf("[ERROR] line %d: Addressing type id  %d invalid \n", lineNumber, sourceAddressType);
+                        printf("[ERROR] line %d: Addressing type id %d invalid \n", lineNumber, sourceAddressType);
                         (*errorCounter)++;
 
                     }
@@ -494,7 +515,7 @@ int parseOperands(char *operands, char *command, int numOfOperand, int lineNumbe
 
             }
             if (!validateCommandAddressType(command, sourceAddressType, destAddressType)) {
-                printf("[ERROR] line %d: Too many operands  to %s command \n", lineNumber, command);
+                printf("[ERROR] line %d: Invalid addressing in %s command \n", lineNumber, command);
                 (*errorCounter)++;
             }
             validateImmediateSize(lineNumber, errorCounter, secondOp, destAddressType, &valueDest);
@@ -558,10 +579,11 @@ int parseCommand(char *line, char **command, int lineNumber, int *numOfOperand, 
         free(parserCommand);
         return 0;
     } else {
-        if (*numOfOperand >= 1) {
+        command_operands++;
+        if (strcmp(command_operands, "") != 0) {
             counter = 0;
             tmp_operands = (char *) malloc(sizeof(char) * (strlen(command_operands) + 1));
-            command_operands++;
+
             while (*command_operands != '\n') {
                 tmp_operands[counter++] = *command_operands;
                 command_operands++;
