@@ -419,6 +419,7 @@ int validateJmpTypesCommandOperand(char *operand, int lineNumber, int *errorCoun
         (*errorCounter)++;
         return 0;
     }
+    return 1;
 
 }
 

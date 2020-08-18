@@ -56,14 +56,19 @@ int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
         switch (numOfOperands) {
             case 0:
                 ++(*IC);
+
                 saveInstruction(commandObj.value.opCode, commandObj.value.funct, 0, 0, 0, 0);
                 break;
             case 1:
+                parseOneOperand(operands, &firstOperand);
                 if (isJmpCommand(command)) {
                     destAddressType = RELATIVE_ADDRESSING;
                     destOffset = calculateOffsetAddress(destAddressType);
+                    if (strchr(firstOperand, '&')) {
+                        firstOperand++;
+                        isDistanceLabel = 1;
+                    }
                 }
-                parseOneOperand(operands, &firstOperand);
                 if (firstOperand != NULL) {
                     if (validateOperand(firstOperand, &destAddressType, lineNumber, &errorCounter, &valueDest,
                                         &operandDestType)) {
@@ -78,8 +83,8 @@ int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
                 if ((destAddressType) == REGISTER_TYPE) {
                     (destOffset) = 0;
                 }
-                *IC += destOffset + 1;
 
+                *IC += destOffset + 1;
                 break;
             case 2:
                 parseTwoOperands(operands, &firstOperand, &secondOperand);
@@ -206,10 +211,6 @@ void buildMachineCodeOneOperand(const int *IC, int lineNumber, char *firstOperan
                                 const int *operandType, int *destOffset, HashMap command, int valueDest) {
     int regDest = -1, distanceOfJmpCommands = -1, value = 0, tempIC = 0;
     if ((*operandType) == label_operand) {
-        if (strchr(firstOperand, '&')) {
-            firstOperand++;
-            isDistanceLabel = 1;
-        }
         symbolIndex = checkIfSymbolExists(firstOperand, lineNumber);
         if (symbolIndex == -1) {
             printf("[ERROR] line %d: %s not found on symbol table", lineNumber, firstOperand);
@@ -249,7 +250,7 @@ void buildMachineCodeDirective(int lineNumber, char *data, int directiveType, in
         case DATA_DIRECTIVE:
             numberStr = strtok(data, DELIM);
             while (numberStr) {
-                if (numberValidation(numberStr, MEMORY_WORD_SIZE ,& value, lineNumber, errorCounter)) {
+                if (numberValidation(numberStr, MEMORY_WORD_SIZE, &value, lineNumber, errorCounter)) {
                     saveData(convertTo2Complement(value));
                     numberStr = strtok(NULL, DELIM);
                 } else {
