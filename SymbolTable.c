@@ -9,6 +9,7 @@
 SymbolTable *table;
 int tableSize;
 
+/* allocate symbol array table*/
 SymbolTable *allocateTable() {
     SymbolTable *resizeTable;
     if (table == NULL) {
@@ -34,6 +35,7 @@ SymbolTable *allocateTable() {
 
 }
 
+/* add symbol to table*/
 int addSymbol(SymbolTable row, int lineNumber) {
 
     // check if a symbol exists or not in the table, if not we update table size and add row to table.
@@ -52,6 +54,7 @@ int addSymbol(SymbolTable row, int lineNumber) {
 
 }
 
+/* check if the symbol exists in table*/
 int checkIfSymbolExists(char *symbolName, int lineNumber) {
     int i = 0;
     for (i = 0; i < tableSize; i++) {
@@ -62,6 +65,7 @@ int checkIfSymbolExists(char *symbolName, int lineNumber) {
     return -1;
 }
 
+/* update symbol is entry*/
 void updateSymbolTable(int IC) {
     int i = 0;
     if (table != NULL) {
@@ -73,16 +77,14 @@ void updateSymbolTable(int IC) {
     }
 }
 
-SymbolTable getTableRow(int index) {
-    return table[index];
-}
-
+/* update symbol is entry*/
 void updateIsEntrySymbol(int index) {
     if (table != NULL) {
         table[index].is_entry = 1;
     }
 }
 
+/*free table array allocation*/
 void freeTable() {
     if (table != NULL) {
         free(table);
@@ -90,9 +92,4 @@ void freeTable() {
     }
 }
 
-void updateAddress(int address, int index) {
-    if (table != NULL) {
-        table[index].address = address;
-    }
-}
 

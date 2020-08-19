@@ -9,6 +9,8 @@
 #include "SecondAsm.h"
 
 
+
+
 /* Second Read function which, parse labels,calculate distance of jmps,jre,bne commands , calculate IC and  build binary machine code */
 int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
 
@@ -41,7 +43,7 @@ int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
                       &operands))) {
 
 
-        commandObj = commandOpCode_functCode(command);
+        commandObj = getCommandByCommandName(command);
         switch (numOfOperands) {
             case 0:
                 ++(*IC);
@@ -117,42 +119,11 @@ int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
                     }
                 }
 
-                if (operandSrcType == register_operand && operandDestType == label_operand) {
-                    regSrc = isRegister(firstOperand);
-                    saveInstruction(commandObj.value.opCode, commandObj.value.funct, regSrc,
-                                    srcAddressType, 0, 0);
-                    saveWord(labelDestAddress, destAddressType, isSrcExternalLabel);
-                }
-                if (operandSrcType == label_operand && operandDestType == register_operand) {
-                    regDest = isRegister(secondOperand);
-                    saveInstruction(commandObj.value.opCode, commandObj.value.funct, 0,
-                                    0, regDest, destAddressType);
-                    saveWord(labelSrcAddress, srcAddressType, isSrcExternalLabel);
-                }
-                if (operandSrcType == label_operand && operandDestType == number_operand) {
-                    saveInstruction(commandObj.value.opCode, commandObj.value.funct, 0,
-                                    0, 0, 0);
-                    saveWord(labelSrcAddress, destAddressType, isSrcExternalLabel);
-                    saveWord(convertTo2Complement(valueDest), destAddressType, isSrcExternalLabel);
-                }
-                if (operandSrcType == register_operand && operandDestType == register_operand) {
-                    regSrc = isRegister(firstOperand);
-                    regDest = isRegister(secondOperand);
-                    saveInstruction(commandObj.value.opCode, commandObj.value.funct, regSrc,
-                                    srcAddressType, regDest, destAddressType);
-                }
-                if (operandSrcType == label_operand && operandDestType == label_operand) {
-                    saveInstruction(commandObj.value.opCode, commandObj.value.funct, 0,
-                                    0, 0, 0);
-                    saveWord(labelSrcAddress, srcAddressType, isSrcExternalLabel);
-                    saveWord(labelDestAddress, destAddressType, isDestExternalLabel);
-                }
-                if (operandSrcType == number_operand && operandDestType == register_operand) {
-                    regDest = isRegister(secondOperand);
-                    saveInstruction(commandObj.value.opCode, commandObj.value.funct, 0,
-                                    0, regDest, destAddressType);
-                    saveWord(convertTo2Complement(valueSrc), srcAddressType, -1);
-                }
+                buildMachineCode2Operands(firstOperand, secondOperand, labelDestAddress, labelSrcAddress, regDest,
+                                          regSrc, isSrcExternalLabel,
+                                          isDestExternalLabel, destAddressType, srcAddressType, operandDestType,
+                                          operandSrcType, valueSrc, valueDest,
+                                          &commandObj);
                 adaptOffsetsByAddressType(destAddressType, srcAddressType, &srcOffset, &destOffset);
 
                 *IC += srcOffset + destOffset + 1;
@@ -166,12 +137,55 @@ int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
 
 }
 
+void buildMachineCode2Operands(char *firstOperand, char *secondOperand, int labelDestAddress, int labelSrcAddress,
+                               int regDest, int regSrc, int isSrcExternalLabel, int isDestExternalLabel,
+                               int destAddressType, int srcAddressType, int operandDestType, int operandSrcType,
+                               int valueSrc, int valueDest, Command *commandObj) {
+    if (operandSrcType == register_operand && operandDestType == label_operand) {
+        regSrc = isRegister(firstOperand);
+        saveInstruction((*commandObj).value.opCode, (*commandObj).value.funct, regSrc,
+                        srcAddressType, 0, 0);
+        saveWord(labelDestAddress, destAddressType, isSrcExternalLabel);
+    }
+    if (operandSrcType == label_operand && operandDestType == register_operand) {
+        regDest = isRegister(secondOperand);
+        saveInstruction((*commandObj).value.opCode, (*commandObj).value.funct, 0,
+                        0, regDest, destAddressType);
+        saveWord(labelSrcAddress, srcAddressType, isSrcExternalLabel);
+    }
+    if (operandSrcType == label_operand && operandDestType == number_operand) {
+        saveInstruction((*commandObj).value.opCode, (*commandObj).value.funct, 0,
+                        0, 0, 0);
+        saveWord(labelSrcAddress, destAddressType, isSrcExternalLabel);
+        saveWord(convertTo2Complement(valueDest), destAddressType, isSrcExternalLabel);
+    }
+    if (operandSrcType == register_operand && operandDestType == register_operand) {
+        regSrc = isRegister(firstOperand);
+        regDest = isRegister(secondOperand);
+        saveInstruction((*commandObj).value.opCode, (*commandObj).value.funct, regSrc,
+                        srcAddressType, regDest, destAddressType);
+    }
+    if (operandSrcType == label_operand && operandDestType == label_operand) {
+        saveInstruction((*commandObj).value.opCode, (*commandObj).value.funct, 0,
+                        0, 0, 0);
+        saveWord(labelSrcAddress, srcAddressType, isSrcExternalLabel);
+        saveWord(labelDestAddress, destAddressType, isDestExternalLabel);
+    }
+    if (operandSrcType == number_operand && operandDestType == register_operand) {
+        regDest = isRegister(secondOperand);
+        saveInstruction((*commandObj).value.opCode, (*commandObj).value.funct, 0,
+                        0, regDest, destAddressType);
+        saveWord(convertTo2Complement(valueSrc), srcAddressType, -1);
+    }
+}
+
+/* update the symbol which is external by correct address*/
 void updateExternalLabelAddress(int IC, int isSrcExternalLabel,
                                 int isDestExternalLabel, char *firstOperand, char *secondOperand) {
 
     if (isSrcExternalLabel && isDestExternalLabel) {
-        // the two of operand is external so the take two words
-        // adding offset 1 to IC  for a second label
+        /*the two of operand is external so the take two words*/
+        /* adding offset 1 to IC  for a second label */
         addExternalLabel(IC, firstOperand);
         addExternalLabel(IC + 1, secondOperand);
     } else if (isSrcExternalLabel) {
@@ -181,6 +195,7 @@ void updateExternalLabelAddress(int IC, int isSrcExternalLabel,
     }
 }
 
+/* adapt offsets by addressing types*/
 void adaptOffsetsByAddressType(int destAddressType, int srcAddressType, int *srcOffset, int *destOffset) {
 
     if (srcAddressType == REG_ADDRESSING && destAddressType == REG_ADDRESSING) {
@@ -194,7 +209,7 @@ void adaptOffsetsByAddressType(int destAddressType, int srcAddressType, int *src
     }
 }
 
-// build machine code on one operand
+/* build machine code one operand*/
 void buildMachineCodeOneOperand(const int *IC, int lineNumber, char *firstOperand,
                                 int labelAddress, int isDistanceLabel, int symbolIndex, const int *destAddressType,
                                 const int *operandType, int *destOffset, Command command, int valueDest) {
@@ -231,6 +246,7 @@ void buildMachineCodeOneOperand(const int *IC, int lineNumber, char *firstOperan
 
 }
 
+/* build machine code on directive*/
 void buildMachineCodeDirective(int lineNumber, char *data, int directiveType, int *errorCounter) {
     char *numberStr;
     int value = 0, i = 0;

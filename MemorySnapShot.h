@@ -7,11 +7,11 @@
 
 #include "Constanst.h"
 
-/* check is empty line*/
+/* enum define ARE*/
 enum ARE {
     absolute = 4, relocatable = 2, external = 1
 };
-/* check is empty line*/
+/* struct define 24 bits of machine code of instruction*/
 typedef struct {
     unsigned int are: 3;
     unsigned int funct: 5;
@@ -21,45 +21,51 @@ typedef struct {
     unsigned int srcAddress: 2;
     unsigned int opCode: 6;
 } Instruction;
-/* check is empty line*/
+/* struct define 24 bits of data*/
 typedef struct {
     unsigned int dataValue: 24;
 } Data;
-/* check is empty line*/
+/* struct define 21 bits of extra word snd 3 bits for are */
 typedef struct {
     unsigned int are: 3;
     unsigned int extraWord: 21;
 } Word;
 
 
-
-/* check is empty line*/
+/* array for hold data*/
 extern int dataSnapShotMemory[MAX_DATA];
-/* check is empty line*/
+/* current size of data*/
 extern int dataSize;
-/* check is empty line*/
-extern int machineCodeSize;
-/* check is empty line*/
+/* array for hold external labels*/
 extern char **externalLabels;
-/* check is empty line*/
+/* current size of machine code*/
+extern int machineCodeSize;
+/* array for hold machine code*/
 extern int *memoryCodeArray;
-/* check is empty line*/
+
+/* function for save inside data snap shot memory array*/
 int *saveToSnapShotMemory(char *data, int directiveType, int *DC, int *deltaCounter, int *errorCounter, int lineNumber);
-/* check is empty line*/
+
+/* save instruction in machine code array*/
 void
 saveInstruction(unsigned int command, unsigned int funct, unsigned int sourceOperand, unsigned int sourceAddressType,
                 unsigned int destOperand,
                 unsigned int destAddressType);
-/* check is empty line*/
+
+/* save word in machine code array*/
 void saveWord(unsigned int value, unsigned int addressType,
               int isLabelExternal);
-/* check is empty line*/
+
+/* save data in machine code array*/
 void saveData(unsigned int value);
-/* check is empty line*/
+
+/* allocate machine memory array by size of machine code*/
 int *initMachineMemoryCode(int sizeOfMachineCode);
-/* check is empty line*/
+
+/* init external labels by size of IC*/
 char **initExternalLabels(int sizeOfIC);
-/* check is empty line*/
+
+/* add external label to array by ic and label*/
 void addExternalLabel(int IC, char *label);
 
 

@@ -9,7 +9,9 @@
 #include "HelpersMethods.h"
 #include "ctype.h"
 
+/* const array for registers*/
 const char *registers[] = {"r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7"};
+/*const array of command for commands*/
 const Command commands[] =
         {
                 {"mov",  {0,  0, 2}},
@@ -32,8 +34,7 @@ const Command commands[] =
         };
 
 
-void adjustOffsetOfSrcDest(int sourceAddressType, int destAddressType, int *srcOffset, int *destOffset);
-
+/* skip white spaces*/
 char *skipWhitesSpaces(char *line) {
     while ((*line == ' ') || (*line == '\t')) {
         line++;
@@ -41,6 +42,7 @@ char *skipWhitesSpaces(char *line) {
     return line;
 }
 
+/* skip label is needed*/
 char *skipLabel(char *line) {
     while (*line != ':') {
         line++;
@@ -49,15 +51,12 @@ char *skipLabel(char *line) {
     return line;
 }
 
+/* check is alpha numeric in string*/
 int isAlphaNumeric(const char *str) {
     return (*str >= 'a' && *str <= 'z') || (*str >= 'A' && *str <= 'Z');
 }
 
-
-int isNumber(const char *str) {
-    return *str >= '0' && *str <= '9';
-}
-
+/* check is empty line*/
 int isEmptyLine(char *line) {
     char *lineEmpty;
     if (line != NULL) {
@@ -69,27 +68,14 @@ int isEmptyLine(char *line) {
     return 0;
 }
 
+/* check is comment line*/
 int isComment(char *line) {
     if (*line == ';')
         return 1;
     return 0;
 }
 
-int convertToBase2(int value) {
-    int carry = 0, index = 15, counter = 0;
-    char b[15];
-    while (value > 0) {
-        carry = value % 2;
-        value /= 2;
-        b[index--] = carry;
-        counter++;
-    }
-    for (int i = 0; i < 15; i++) {
-        printf("%d", b[i]);
-    }
-
-}
-
+/* convert number to 2 complement*/
 int convertTo2Complement(int value) {
 
     if (value < 0) {
@@ -102,8 +88,8 @@ int convertTo2Complement(int value) {
     }
 }
 
-
-char *parseLabel(char *line, char **labelName, int lineNumber, int *errorCounter) {
+/* parse label*/
+int parseLabel(char *line, char **labelName, int lineNumber, int *errorCounter) {
     char *label = NULL;
     char *originalLine = line;
     int count = 0;
@@ -114,34 +100,34 @@ char *parseLabel(char *line, char **labelName, int lineNumber, int *errorCounter
         }
         if (count == 0) {
             printf("[ERROR] line %d: Label can't start with spaces \n", lineNumber);
-            *errorCounter++;
-            return NULL;
+            (*errorCounter)++;
+            return 1;
         }
         if (count > MAX_SYMBOL_SIZE) {
             printf("[ERROR] line %d: Label too large only %d characters \n", lineNumber, MAX_SYMBOL_SIZE);
-            *errorCounter++;
-            return NULL;
+            (*errorCounter)++;
+            return 1;
         }
         label = malloc(sizeof(char) * (count + 1));
         if (!label) {
-            printf("[FATAL] Allocation  of memory fail\n");
-            *errorCounter++;
-            return NULL;
+            printf("[ERROR] Allocation  of memory fail\n");
+            (*errorCounter)++;
+            return 1;
         }
         strncpy(label, originalLine, count);
         label[count] = 0;
         *labelName = label;
         if (!isAlphaNumeric(label)) {
             printf("[ERROR] line %d: Syntax error, label must be alpha numeric \n", lineNumber);
-            *errorCounter++;
-            return NULL;
+            (*errorCounter)++;
+            return 0;
         }
-        return label;
     } else {
-        return NULL;
+        return 0;
     }
 }
 
+/* check is command exists*/
 int isCommandExists(char *command, int *numOfOperands) {
     int i = 0;
     while (commands[i].key) {
@@ -154,7 +140,8 @@ int isCommandExists(char *command, int *numOfOperands) {
     return -1;
 }
 
-Command commandOpCode_functCode(char *command) {
+/* return command by command name */
+Command getCommandByCommandName(char *command) {
 
     Command command_obj = {.value=-1};
     int i = 0;
@@ -167,6 +154,7 @@ Command commandOpCode_functCode(char *command) {
     return command_obj;
 }
 
+/* check is register*/
 int isRegister(char *operand) {
     int i = 0;
     while (i < NUMBER_OF_REGISTERS) {
@@ -178,11 +166,12 @@ int isRegister(char *operand) {
     return -1;
 }
 
+/* validate command address type is a command have operand with valid address type*/
 int validateCommandAddressType(char *command, int addressTypeSrc, int addressTypeDest) {
 
     Command opCode = {0};
     int command_opCode = 0;
-    opCode = commandOpCode_functCode(command);
+    opCode = getCommandByCommandName(command);
     if (opCode.value.opCode != -1) {
         command_opCode = opCode.value.opCode;
 
@@ -231,7 +220,7 @@ int validateCommandAddressType(char *command, int addressTypeSrc, int addressTyp
     }
 }
 
-
+/* string validation check if string begin and end with  "" */
 int stringValidation(char **string, int lineNumber, int *errorCounter) {
     // if quotes detected, remove it from a string
     if (**string == '"' && (*string)[strlen(*string) - 1] == '"') {
@@ -250,6 +239,7 @@ int stringValidation(char **string, int lineNumber, int *errorCounter) {
     return 1;
 }
 
+/* number validation check if the number is not out of max size*/
 int numberValidation(char *number_value, int memorySize, int *value, int lineNumber, int *errorCounter) {
 
     int maxNum = (1 << (memorySize - 1));
@@ -285,6 +275,7 @@ int numberValidation(char *number_value, int memorySize, int *value, int lineNum
     return 1;
 }
 
+/* check if the value is a number*/
 int isValueNumber(char *operand, int *value, int line, int *errorCounter) {
     char *sighNumber;
     sighNumber = strchr(operand, '#');
@@ -315,7 +306,7 @@ int isValueNumber(char *operand, int *value, int line, int *errorCounter) {
     return 0;
 }
 
-
+/*validate if operand is correct*/
 int validateOperand(char *operand, int *addressType, int line, int *errorCounter, int *value, int *operandType) {
 
     if (isRegister(operand) != -1) {
@@ -335,7 +326,7 @@ int validateOperand(char *operand, int *addressType, int line, int *errorCounter
     return -1;
 }
 
-
+/* parse two operand when command with 2 operands*/
 void parseTwoOperands(char *operands, char **firstOperand, char **secondOperand) {
     char *separator, *firstOp = NULL, *originalStr = operands;
     int counter = 0;
@@ -358,6 +349,7 @@ void parseTwoOperands(char *operands, char **firstOperand, char **secondOperand)
 
 }
 
+/* parse one operand when command with one operand*/
 void parseOneOperand(char *operands, char **oneOperand) {
     int counter = 0;
     char *orgOperand = operands;
@@ -372,6 +364,7 @@ void parseOneOperand(char *operands, char **oneOperand) {
 
 }
 
+/* validate if immediate size*/
 void validateImmediateSize(int lineNumber, int *errorCounter, char *operand, int addressType, int *value) {
     if (addressType == IMMEDIATE_ADDRESSING) {
         if (strchr(operand, '#') != NULL) {
@@ -385,6 +378,7 @@ void validateImmediateSize(int lineNumber, int *errorCounter, char *operand, int
 
 }
 
+/*calculate offset*/
 int calculateOffsetAddress(int addressType) {
     int offSet = 0;
     switch (addressType) {
@@ -402,11 +396,13 @@ int calculateOffsetAddress(int addressType) {
     return offSet;
 }
 
+/* check if the command is jmp,jsr,bne*/
 
 int isJmpCommand(char *command) {
     return strcmp(command, "jmp") == 0 || strcmp(command, "bne") == 0 || strcmp(command, "jsr") == 0;
 }
 
+/* validate tmp jmp,jre,bne command types */
 int validateJmpTypesCommandOperand(char *operand, int lineNumber, int *errorCounter) {
 
     if (*operand == '&' && !isAlphaNumeric(operand + 1)) {
@@ -423,7 +419,7 @@ int validateJmpTypesCommandOperand(char *operand, int lineNumber, int *errorCoun
 
 }
 
-
+/* parse operands*/
 int parseOperands(char *operands, char *command, int numOfOperand, int lineNumber, int *IC, int *errorCounter) {
     char *firstOp = NULL, *secondOp = NULL;
     int sourceAddressType = -1, destAddressType = -1, srcOffset = 0, destOffset = 0, valueSrc = 0, valueDest = 0;
@@ -533,6 +529,7 @@ int parseOperands(char *operands, char *command, int numOfOperand, int lineNumbe
 
 }
 
+/*adjust offsets by source and/or dest address types*/
 void adjustOffsetOfSrcDest(int sourceAddressType, int destAddressType, int *srcOffset, int *destOffset) {
     if (sourceAddressType == REG_ADDRESSING && destAddressType == REG_ADDRESSING) {
         (*destOffset) = 0;
@@ -545,7 +542,7 @@ void adjustOffsetOfSrcDest(int sourceAddressType, int destAddressType, int *srcO
     }
 }
 
-
+/* parse command*/
 int parseCommand(char *line, char **command, int lineNumber, int *numOfOperand, int *errorCounter, char **operands) {
     int counter = 0;
     char *command_operands = NULL, *parserCommand = NULL, *originalCommandLine = NULL, *tmp_operands = NULL;
@@ -597,6 +594,7 @@ int parseCommand(char *line, char **command, int lineNumber, int *numOfOperand, 
     }
 }
 
+/* extract operand from directive,label,etc*/
 void extractOperand(char *line, char **label, char *originalLine, int counter) {
     line += (counter + 1);
     originalLine += (counter + 1);
@@ -609,6 +607,7 @@ void extractOperand(char *line, char **label, char *originalLine, int counter) {
     strncpy(*label, originalLine, counter);
 }
 
+/* check is directive*/
 int checkIsDirective(char *line, const char *originalLine, int *counter, const char *type) {
     char *finalDirective = NULL;
     while (*line != ' ') {
@@ -627,6 +626,7 @@ int checkIsDirective(char *line, const char *originalLine, int *counter, const c
     }
 }
 
+/* check is entry directive*/
 int isEntryDirective(char *line, char **labelEntry) {
 
     char *originalLine, *directiveStatement;
@@ -651,7 +651,7 @@ int isEntryDirective(char *line, char **labelEntry) {
     return 0;
 }
 
-
+/* check is extern directive*/
 int isExternDirective(char *line, char **label, int *errorCounter) {
     char *originalLine, *directiveStatement;
     int counter = 0;
@@ -676,6 +676,7 @@ int isExternDirective(char *line, char **label, int *errorCounter) {
     return 0;
 }
 
+/* check if data directive in correct formatting*/
 int isDataFormattingCorrect(char *directiveData, int *errorCounter, int lineNumber) {
     int i = 0, j = 0, delim_counter = 0;
 
@@ -715,7 +716,7 @@ int isDataFormattingCorrect(char *directiveData, int *errorCounter, int lineNumb
 
 }
 
-
+/* save data from .data directive in memory block*/
 int populateDataDirective(int *DC, int directiveType, char *directiveDefinedData, int *errorCounter, int linerNumber) {
     int *snapShotMemory, deltaDataCounter = 0;
     if (isDataFormattingCorrect(directiveDefinedData, errorCounter, linerNumber)) {
@@ -731,6 +732,7 @@ int populateDataDirective(int *DC, int directiveType, char *directiveDefinedData
     return deltaDataCounter;
 }
 
+/* parse directive*/
 int parseDirective(char *line, char **data, int lineNumber, int *directiveType, int *errorsCounter) {
     char DATA[] = ".data", STRING[] = ".string", *directive, *dataFixer, *copiedData, *copiedNumberArray = NULL;
 

@@ -12,6 +12,7 @@ int tableSize;
 char **externalLabels;
 int *memoryCodeArray;
 int machineCodeSize;
+
 void printSymbolTable();
 
 void generateOutputFiles(char *const *argv, int i, int ICF, int DCF, char *fileName);
@@ -22,7 +23,6 @@ int main(int argc, char *argv[]) {
     char *fileName;
     AsmFileContent *asmContentFile = NULL;
     FILE *file = NULL;
-    SymbolTable *table_symbol;
     if (numberOfFiles == 1) {
         printf("\n[ERROR] - You must enter asm file name \n");
 
@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
                     } else {
                         ICF = IC;
                         DCF = DC;
-                        // update symbol table with IC+INIT ADDRESS = (100)
+                        /* update symbol table with IC+INIT ADDRESS = (100) */
                         updateSymbolTable((INIT_ADDRESS + IC));
                         printf("\n");
                         printSymbolTable();
@@ -58,6 +58,7 @@ int main(int argc, char *argv[]) {
                             errorSecondRead += secondRead(asmContentFile[index], &IC, index + 1);
                         }
                     }
+                    /*print errors if we find in second read, if not we generate files */
                     if (errorSecondRead > 0) {
                         printf("[INFO] Errors found %d\n", errorSecondRead);
                         printf("[INFO] See all errors messages and warnings ,fix and run again\n");
@@ -77,6 +78,7 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
+/* generate output files*/
 void generateOutputFiles(char *const *argv, int i, int ICF, int DCF, char *fileName) {
     fileName = getFileName(argv[i]);
     writeEntryFile(table, tableSize, fileName);
@@ -86,7 +88,7 @@ void generateOutputFiles(char *const *argv, int i, int ICF, int DCF, char *fileN
     writeMachineCodeFile(ICF, DCF, memoryCodeArray, fileName);
 }
 
-
+/* print symbol table from first read just for debugging*/
 void printSymbolTable() {
     int i = 0;
     if (table != NULL) {
