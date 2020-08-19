@@ -90,10 +90,11 @@ int convertTo2Complement(int value) {
 
 /* parse label*/
 int parseLabel(char *line, char **labelName, int lineNumber, int *errorCounter) {
-    char *label = NULL;
     char *originalLine = line;
     int count = 0;
-    if (strchr(originalLine, ':')) {
+    if (*originalLine == ' ' || *originalLine == '.') {
+        return 0;
+    } else if (strchr(originalLine, ':')) {
         while (*line != ':' && *line != ' ') {
             line++;
             count++;
@@ -104,26 +105,32 @@ int parseLabel(char *line, char **labelName, int lineNumber, int *errorCounter) 
             return 1;
         }
         if (count > MAX_SYMBOL_SIZE) {
-            printf("[ERROR] line %d: Label too large only %d characters \n", lineNumber, MAX_SYMBOL_SIZE);
+            printf("[ERROR] line %d: Label too large only %d characters, label size is %d \n", lineNumber,
+                   MAX_SYMBOL_SIZE, count);
             (*errorCounter)++;
+            labelName = NULL;
             return 1;
         }
-        label = malloc(sizeof(char) * (count + 1));
-        if (!label) {
+        *labelName = malloc(sizeof(char) * (count + 1));
+        if (!labelName) {
             printf("[ERROR] Allocation  of memory fail\n");
             (*errorCounter)++;
+            labelName = NULL;
             return 1;
         }
-        strncpy(label, originalLine, count);
-        label[count] = 0;
-        *labelName = label;
-        if (!isAlphaNumeric(label)) {
+        strncpy(*labelName, originalLine, count);
+        (*labelName)[count] = 0;
+        if (!isAlphaNumeric(*labelName)) {
             printf("[ERROR] line %d: Syntax error, label must be alpha numeric \n", lineNumber);
             (*errorCounter)++;
-            return 0;
+            labelName = NULL;
+            return 1;
         }
     } else {
-        return 0;
+        printf("[ERROR] line %d: Syntax error, label must end with ':' \n", lineNumber);
+        (*errorCounter)++;
+        labelName = NULL;
+        return 1;
     }
 }
 
@@ -229,7 +236,7 @@ int stringValidation(char **string, int lineNumber, int *errorCounter) {
     } else if (**string == '\0') {
         printf("[ERROR] line %d: No Data in string directive \n", lineNumber);
         (*errorCounter)++;
-    } else if (isprint(**string)) {
+    } else if (!isprint(**string)) {
         printf("[ERROR] line %d: string contains not printable characters, %c \n", lineNumber, **string);
         (*errorCounter)++;
     } else {
@@ -247,7 +254,7 @@ int numberValidation(char *number_value, int memorySize, int *value, int lineNum
     int valueLocal = 0;
     if (value != NULL) {
         *value = (int) strtol(number_value, &end, 10);
-        if (*value >= maxNum || *value <= -maxNum) {
+        if (*value >= maxNum || *value < -maxNum) {
             (*errorCounter)++;
             printf("[ERROR] line %d: %s is %s, the number must be in the range [%d to %d] \n", lineNumber,
                    number_value,
@@ -258,7 +265,7 @@ int numberValidation(char *number_value, int memorySize, int *value, int lineNum
         }
     } else {
         valueLocal = (int) strtol(number_value, &end, 10);
-        if (valueLocal >= maxNum || valueLocal <= -maxNum) {
+        if (valueLocal >= maxNum || valueLocal < -maxNum) {
             (*errorCounter)++;
             printf("[ERROR] line  %d:%s is %s ,the number must be in the range %d to %d \n", lineNumber,
                    number_value,
@@ -597,26 +604,31 @@ int parseCommand(char *line, char **command, int lineNumber, int *numOfOperand, 
 /* extract operand from directive,label,etc*/
 void extractOperand(char *line, char **label, char *originalLine, int counter) {
     line += (counter + 1);
-    originalLine += (counter + 1);
     counter = 0;
-    while (*line != '\n') {
-        counter++;
-        line++;
+    line = skipWhitesSpaces(line);
+    parseOneOperand(line, label);
+    if (label != NULL) {
+        counter = (int) strlen(*label);
+        originalLine = (*label + counter - 1);
+        if (*originalLine == '\n') {
+            (*label)[counter - 1] = 0;
+        }
+    } else {
+        label = NULL;
     }
-    *label = (char *) malloc(sizeof(char) * (counter + 1));
-    strncpy(*label, originalLine, counter);
 }
 
 /* check is directive*/
-int checkIsDirective(char *line, const char *originalLine, int *counter, const char *type) {
+int checkIsDirective(char *line, char *originalLine, int *counter, const char *type) {
     char *finalDirective = NULL;
     while (*line != ' ') {
         (*counter)++;
         line++;
     }
     finalDirective = (char *) malloc(sizeof(char) * (*counter) + 1);
-    strncpy(finalDirective, originalLine, *counter);
+    strncpy(finalDirective, originalLine, (*counter));
     finalDirective[*counter] = 0;
+
     if (strcmp(finalDirective, type) == 0) {
         free(finalDirective);
         return 1;
@@ -627,52 +639,57 @@ int checkIsDirective(char *line, const char *originalLine, int *counter, const c
 }
 
 /* check is entry directive*/
-int isEntryDirective(char *line, char **labelEntry) {
+int isEntryDirective(char *line, char **labelEntry, int lineNumber, int *errorCounter) {
 
-    char *originalLine, *directiveStatement;
+    char *originalLine = NULL, *directiveStatement = NULL;
     int counter = 0;
+
     if (strchr(line, '.')) {
-        originalLine = line;
-        if (checkIsDirective(line, originalLine, &counter, ENTRY)) {
-            extractOperand(line, labelEntry, originalLine, counter);
-            return 1;
-        }
-    } else {
-        directiveStatement = skipLabel(line);
-        directiveStatement = skipWhitesSpaces(directiveStatement);
-        originalLine = directiveStatement;
-        if (strchr(directiveStatement, '.')) {
-            if (checkIsDirective(directiveStatement, originalLine, &counter, ENTRY)) {
+        if (isLabel(line)) {
+            line = skipLabel(line);
+            line = skipWhitesSpaces(line);
+            originalLine = line;
+            if (checkIsDirective(line, originalLine, &counter, ENTRY)) {
+                extractOperand(line, labelEntry, originalLine, counter);
+                return 1;
+            }
+        } else {
+            line = skipWhitesSpaces(line);
+            originalLine = line;
+            if (checkIsDirective(line, originalLine, &counter, ENTRY)) {
                 extractOperand(line, labelEntry, originalLine, counter);
                 return 1;
             }
         }
+
     }
     return 0;
 }
 
 /* check is extern directive*/
-int isExternDirective(char *line, char **label, int *errorCounter) {
-    char *originalLine, *directiveStatement;
+int isExternDirective(char *line, char **labelExternal, int *errorCounter, int lineNumber) {
+    char *originalLine = NULL, *directiveStatement = NULL;
     int counter = 0;
     if (strchr(line, '.')) {
-        originalLine = line;
-        if (checkIsDirective(line, originalLine, &counter, EXTERN)) {
-            extractOperand(line, label, originalLine, counter);
-            return 1;
-        }
-    } else {
-        directiveStatement = skipLabel(line);
-        directiveStatement = skipWhitesSpaces(directiveStatement);
-        originalLine = directiveStatement;
-        if (strchr(directiveStatement, '.')) {
-
-            if (checkIsDirective(directiveStatement, originalLine, &counter, EXTERN)) {
-                extractOperand(line, label, originalLine, counter);
+        if (isLabel(line)) {
+            line = skipLabel(line);
+            line = skipWhitesSpaces(line);
+            originalLine = line;
+            if (checkIsDirective(line, originalLine, &counter, EXTERN)) {
+                extractOperand(line, labelExternal, originalLine, counter);
+                return 1;
+            }
+        } else {
+            line = skipWhitesSpaces(line);
+            originalLine = line;
+            if (checkIsDirective(line, originalLine, &counter, EXTERN)) {
+                extractOperand(line, labelExternal, originalLine, counter);
                 return 1;
             }
         }
+
     }
+
     return 0;
 }
 
@@ -746,6 +763,9 @@ int parseDirective(char *line, char **data, int lineNumber, int *directiveType, 
     if (*line == ' ') {
         directiveStatement = skipWhitesSpaces(line);
     }
+    if (*line == '.') {
+        directiveStatement = line;
+    }
     if (strchr(directiveStatement, '.')) {
         for (i = 0; i < strlen(directiveStatement); i++) {
             if (directiveStatement[i] == ' ') {
@@ -754,9 +774,10 @@ int parseDirective(char *line, char **data, int lineNumber, int *directiveType, 
             }
         }
         if (directiveSeparatorIndex == 0) {
-            printf("[ERROR] line %d:  No spaces found between directive and Data \n ", lineNumber);
-            *errorsCounter++;
-            return 0;
+            printf("[ERROR] line %d: No spaces found between directive and data or you missed set operand after a directive! \n ",
+                   lineNumber);
+            (*errorsCounter)++;
+            return 1;
         } else {
             directive = malloc(sizeof(char) * directiveSeparatorIndex);
             strncpy(directive, directiveStatement, directiveSeparatorIndex);
@@ -765,7 +786,9 @@ int parseDirective(char *line, char **data, int lineNumber, int *directiveType, 
         return 0;
     }
     // check if a directive is .Data/.string/
-    *directiveType = strcmp(directive, DATA) == 0 ? DATA_DIRECTIVE : STRING_DIRECTIVE;
+    *directiveType =
+            strcmp(directive, DATA) == 0 ? DATA_DIRECTIVE : strcmp(directive, STRING) == 0 ? STRING_DIRECTIVE : -1;
+
     if (*directiveType == DATA_DIRECTIVE || *directiveType == STRING_DIRECTIVE) {
         directiveStatement += directiveSeparatorIndex;
         directive = directiveStatement;
@@ -777,18 +800,19 @@ int parseDirective(char *line, char **data, int lineNumber, int *directiveType, 
         strncpy(copiedData, directive, dataCounter);
         copiedData[dataCounter] = 0;
         *data = skipWhitesSpaces(copiedData);
-
         return 1;
     } else {
-        printf("[ERROR] line %d :  Not found %s directive \n", lineNumber, *directiveType == 1 ? "code" : "Data");
-        *errorsCounter++;
+        printf("[ERROR] line %d: Not found %s correct directive \n", lineNumber, *directiveType == 1 ? "code" : "data");
+        (*errorsCounter)++;
         free(*data);
-        return 0;
+        return 1;
     }
 }
 
 
-
+int isLabel(char *line) {
+    return strchr(line, ':') != NULL && isAlphaNumeric(line);
+}
 
 
 

@@ -6,7 +6,7 @@
 #define DELIM ","
 #define DELIM_CHAR ','
 #define MAX_LINE_SIZE 80
-#define MAX_LINES_FILE 100
+#define MAX_LINES_FILE 400
 #define INIT_ADDRESS 100
 #define MAX_SYMBOL_SIZE 31
 #define MAX_DATA 256

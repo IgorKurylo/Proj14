@@ -9,28 +9,18 @@
 #include "SecondAsm.h"
 
 
-
-
 /* Second Read function which, parse labels,calculate distance of jmps,jre,bne commands , calculate IC and  build binary machine code */
 int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
 
     char *labelOperand, *command, *operands, *firstOperand, *secondOperand, *directiveData;
     int errorCounter = 0, labelDestAddress = 0, labelSrcAddress = 0, isDistanceLabel = 0, regDest = -1, regSrc = -1, isSrcExternalLabel = 0, isDestExternalLabel = 0,
-            directiveType = 0, symbolIndex = 0, numOfOperands = 0, destAddressType = -1, srcAddressType = -1, operandDestType = -1, operandSrcType = -1, destOffset = 0, srcOffset = 0, valueSrc, valueDest;
+            directiveType = 0, symbolIndex = 0, numOfOperands = 0, destAddressType = -1, srcAddressType = -1, operandDestType = -1, operandSrcType = -1, destOffset = 0, srcOffset = 0, valueSrc = 0, valueDest = 0;
     Command commandObj;
     if (isComment(asmContentFile.line) || isEmptyLine(asmContentFile.line)) {
         return 0;
     }
-    if (isExternDirective(asmContentFile.line, &labelOperand, &errorCounter)) {
-        return errorCounter;
-    }
-    if (parseDirective(asmContentFile.line, &directiveData, lineNumber, &directiveType, &errorCounter)) {
-        if (directiveType == DATA_DIRECTIVE || directiveType == STRING_DIRECTIVE)
-            buildMachineCodeDirective(lineNumber, directiveData, directiveType, &errorCounter);
-        return errorCounter;
-    }
-    if (isEntryDirective(asmContentFile.line, &labelOperand)) {
-        symbolIndex = checkIfSymbolExists(labelOperand, lineNumber);
+    if (isEntryDirective(asmContentFile.line, &labelOperand, lineNumber, &errorCounter)) {
+        symbolIndex = isSymbolExists(labelOperand);
         if (symbolIndex != -1) {
             updateIsEntrySymbol(symbolIndex);
             return 0;
@@ -39,6 +29,19 @@ int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
             return (++errorCounter);
         }
     }
+    if (isExternDirective(asmContentFile.line, &labelOperand, &errorCounter, lineNumber)) {
+        if (isSymbolExists(labelOperand) == -1) {
+            printf("[ERROR] line %d: %s symbol not exists in symbol table\n", lineNumber, labelOperand);
+            errorCounter++;
+        }
+        return errorCounter;
+    }
+    if (parseDirective(asmContentFile.line, &directiveData, lineNumber, &directiveType, &errorCounter)) {
+        if (directiveType == DATA_DIRECTIVE || directiveType == STRING_DIRECTIVE)
+            buildMachineCodeDirective(lineNumber, directiveData, directiveType, &errorCounter);
+        return errorCounter;
+    }
+
     if ((parseCommand(asmContentFile.line, &command, lineNumber, &numOfOperands, &errorCounter,
                       &operands))) {
 
@@ -83,7 +86,7 @@ int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
                     if (validateOperand(firstOperand, &srcAddressType, lineNumber, &errorCounter, &valueSrc,
                                         &operandSrcType)) {
                         if (operandSrcType == 2) { // if operand is label
-                            symbolIndex = checkIfSymbolExists(firstOperand, lineNumber);
+                            symbolIndex = isSymbolExists(firstOperand);
                             if (symbolIndex != -1) {
                                 labelSrcAddress = table[symbolIndex].address;
                                 if (table[symbolIndex].is_extern && labelSrcAddress == 0) {
@@ -91,7 +94,7 @@ int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
                                 }
 
                             } else {
-                                printf("[ERROR] line %d: %s not found on symbol table", lineNumber, firstOperand);
+                                printf("[ERROR] line %d: %s not found on symbol table\n", lineNumber, firstOperand);
                             }
                         }
                         srcOffset = calculateOffsetAddress(srcAddressType);
@@ -103,14 +106,14 @@ int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
                     if (validateOperand(secondOperand, &destAddressType, lineNumber, &errorCounter, &valueDest,
                                         &operandDestType)) {
                         if (operandDestType == 2) { // if operand is label
-                            symbolIndex = checkIfSymbolExists(secondOperand, lineNumber);
+                            symbolIndex = isSymbolExists(secondOperand);
                             if (symbolIndex != -1) {
                                 labelDestAddress = table[symbolIndex].address;
                                 if (table[symbolIndex].is_extern && labelDestAddress == 0) {
                                     isDestExternalLabel = table[symbolIndex].is_extern;
                                 }
                             } else {
-                                printf("[ERROR] line %d: %s not found on symbol table", lineNumber, firstOperand);
+                                printf("[ERROR] line %d: %s not found on symbol table\n", lineNumber, firstOperand);
                             }
                         }
                         destOffset = calculateOffsetAddress(destAddressType);
@@ -215,9 +218,9 @@ void buildMachineCodeOneOperand(const int *IC, int lineNumber, char *firstOperan
                                 const int *operandType, int *destOffset, Command command, int valueDest) {
     int regDest = -1, distanceOfJmpCommands = -1, value = 0, tempIC = 0;
     if ((*operandType) == label_operand) {
-        symbolIndex = checkIfSymbolExists(firstOperand, lineNumber);
+        symbolIndex = isSymbolExists(firstOperand);
         if (symbolIndex == -1) {
-            printf("[ERROR] line %d: %s not found on symbol table", lineNumber, firstOperand);
+            printf("[ERROR] line %d: %s not found on symbol table\n", lineNumber, firstOperand);
         } else {
             labelAddress = table[symbolIndex].address;
             (*destOffset) = calculateOffsetAddress((*destAddressType));

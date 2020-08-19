@@ -13,10 +13,10 @@
 X:   cmp r1,r2
 
 ; 2. this line is ok (highest positive value that fits in 24 bits)
-Z1:  .data  8388607,
+Z1:  .data  8388607
 
 ; 3. data overflow (positive value too high to fit in 24 bits)
-Z2:  .data  ,8388608
+Z2:  .data  8388608
 
 ; 4. this line is ok (lowest negative value that fits in 24 bits)
 Z3:  .data  -8388608

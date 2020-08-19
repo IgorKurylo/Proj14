@@ -39,7 +39,7 @@ SymbolTable *allocateTable() {
 int addSymbol(SymbolTable row, int lineNumber) {
 
     // check if a symbol exists or not in the table, if not we update table size and add row to table.
-    if (checkIfSymbolExists(row.name, lineNumber) == -1) {
+    if (isSymbolExists(row.name) == -1) {
         tableSize++;
         table = (SymbolTable *) realloc(table, sizeof(SymbolTable) * tableSize);
         if (table != NULL) {
@@ -55,7 +55,7 @@ int addSymbol(SymbolTable row, int lineNumber) {
 }
 
 /* check if the symbol exists in table*/
-int checkIfSymbolExists(char *symbolName, int lineNumber) {
+int isSymbolExists(char *symbolName) {
     int i = 0;
     for (i = 0; i < tableSize; i++) {
         if (strcmp(symbolName, table[i].name) == 0) {

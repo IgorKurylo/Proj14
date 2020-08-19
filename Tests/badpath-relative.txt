@@ -1,0 +1,17 @@
+[INFO] Symbol Table allocated successfully
+[ERROR] line 15: Not found data correct directive 
+[ERROR] line 27: &int invalid operand 
+[ERROR] line 27: Operand &int invalid 
+[ERROR] line 27: Invalid addressing in lea command 
+[ERROR] line 30: &int invalid operand 
+[ERROR] line 30: Operand &int invalid 
+[ERROR] line 30: Invalid addressing in add command 
+[ERROR] line 33: &int invalid operand 
+[ERROR] line 33: Operand &int invalid 
+[ERROR] line 36: Incomplete relative &&start
+[ERROR] line 39: Incomplete relative & start         
+[ERROR] line 42: Incomplete relative &42
+[ERROR] line 45: Incomplete relative &5xy
+[ERROR] line 48: Invalid operand, no operand needed to stop command
+[INFO] Errors found 14
+[INFO] See all errors messages and warnings ,fix and run again

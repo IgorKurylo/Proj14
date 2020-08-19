@@ -1,0 +1,4 @@
+[ERROR] line 19: 1048576 is bigger, the number must be in the range [-1048576 to 1048576] 
+[ERROR] line 19: Invalid 1048576 number size,too high to fit in 21 bits
+[ERROR] line 25: -1048577 is smaller, the number must be in the range [-1048576 to 1048576] 
+[ERROR] line 25: Invalid -1048577 number size,too low to fit in 21 bits

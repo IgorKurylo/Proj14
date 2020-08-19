@@ -32,7 +32,7 @@ SymbolTable *allocateTable();
 int addSymbol(SymbolTable row, int currentIndex);
 
 /* check if the symbol exists in table*/
-int checkIfSymbolExists(char *symbolName, int lineNumber);
+int isSymbolExists(char *symbolName);
 
 /* update symbol is entry*/
 void updateIsEntrySymbol(int index);

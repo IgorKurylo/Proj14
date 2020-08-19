@@ -47,10 +47,10 @@ char *skipWhitesSpaces(char *line);
 char *skipLabel(char *line);
 
 /* check is extern directive*/
-int isExternDirective(char *line, char **label, int *errorsCounter);
+int isExternDirective(char *line, char **label, int *errorsCounter,int lineNumber);
 
 /* check is entry directive*/
-int isEntryDirective(char *line, char **labelEntry);
+int isEntryDirective(char *line, char **labelEntry,int lineNumber,int *errorCounter);
 
 /* save data from .data directive in memory block*/
 int populateDataDirective(int *DC, int directiveType, char *directiveDefinedData, int *errorCounter, int lineNumber);
@@ -62,7 +62,7 @@ int validateOperand(char *operand, int *addressType, int line, int *errorCounter
 int validateCommandAddressType(char *command, int addressTypeSrc, int addressTypeDest);
 
 /* check is directive*/
-int checkIsDirective(char *line, const char *originalLine, int *counter, const char *type);
+int checkIsDirective(char *line,  char *originalLine, int *counter, const char *type);
 
 /* extract operand from directive,label,etc*/
 void extractOperand(char *line, char **label, char *originalLine, int counter);
@@ -100,5 +100,6 @@ int isValueNumber(char *operand, int *value, int line, int *errorCounter);
 /*adjust offsets by source and/or dest address types*/
 void adjustOffsetOfSrcDest(int sourceAddressType, int destAddressType, int *srcOffset, int *destOffset);
 
+int isLabel(char *line);
 
 #endif //PROJECTMAMAN14_HELPERSMETHODS_H

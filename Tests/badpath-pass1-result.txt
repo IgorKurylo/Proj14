@@ -1,0 +1,96 @@
+[ERROR] line 18: Command sub must have 2 operands 
+[ERROR] line 18: Invalid addressing in sub command 
+[ERROR] line  21: 5g mode)
+        prn  4av is not a valid number 
+ [ERROR] line 21: Operand #5g mode)
+        prn  4av invalid 
+[ERROR] line 21:  invalid operand 
+[ERROR] line 21: Operand  invalid 
+[ERROR] line 21: Invalid addressing in sub command 
+[ERROR] line  30: 5 clr  r2
+
+; 18. label �u is not a valid number 
+ [ERROR] line 30: Operand #5 clr  r2
+
+; 18. label �u invalid 
+[ERROR] line  30: 6a is not a valid number 
+ [ERROR] line 30: Operand #6a invalid 
+[ERROR] line 30: Invalid addressing in add command 
+[ERROR] line  33: 5     lea  #3,r5
+
+; 21.�t is not a valid number 
+ [ERROR] line 33: Operand #5     lea  #3,r5
+
+; 21.�t invalid 
+[ERROR] line 33: Invalid addressing in cmp command 
+[ERROR] line  36: 50rhis line is ok (.datqt is not a valid number 
+ [ERROR] line 36: Operand #50rhis line is ok (.datqt invalid 
+[ERROR] line 39: Not found and command 
+ [ERROR] line 42: Not found jSr command 
+ [ERROR] line 45: ,r2  invalid operand 
+[ERROR] line 45: Operand ,r2  invalid 
+[ERROR] line 45: Invalid addressing in cmp command 
+[ERROR] line  48: 5 characters (400) 
+Z1:�s is not a valid number 
+ [ERROR] line 48: Operand #5 characters (400) 
+Z1:�s invalid 
+[ERROR] line 48: Invalid addressing in add command 
+[ERROR] line 54: 480ne is ok (arbitrary s�r invalid operand 
+[ERROR] line 54: Operand 480ne is ok (arbitrary s�r invalid 
+[ERROR] line  57:  48    				   
+
+; 27. t�r is not a valid number 
+ [ERROR] line 57: Operand # 48    				   
+
+; 27. t�r invalid 
+[ERROR] line  60: r3) is not a valid number 
+ [ERROR] line 60: Operand #r3) invalid 
+[ERROR] line 60: Invalid addressing in cmp command 
+[ERROR] line 66: Not found label1: command 
+ [ERROR] line  72: 3    .data   5
+
+; 34. i�p is not a valid number 
+ [ERROR] line 72: Operand #3    .data   5
+
+; 34. i�p invalid 
+[ERROR] line 72: Invalid addressing in lea command 
+[ERROR] line 75: Invalid operand, no operand needed to stop command
+[ERROR] line 84: Not found data correct directive 
+[ERROR] line 87: Not found data correct directive 
+[ERROR] line 90:       DATA1   				   1
+
+; invalid operand 
+[ERROR] line 90: Operand       DATA1   				   1
+
+; invalid 
+[ERROR] line 90: Invalid addressing in cmp command 
+[ERROR] line  93: 1abel cannot be declare�n is not a valid number 
+ [ERROR] line 93: Operand #1abel cannot be declare�n invalid 
+[ERROR] line 93: Invalid addressing in add command 
+[ERROR] line 96: Not found data correct directive 
+[ERROR] line 99: Not found data correct directive 
+[ERROR] line 102: Not found data correct directive 
+[ERROR] line 105: Not found data correct directive 
+[ERROR] line 108: Not found data correct directive 
+[ERROR] line 111: Not found data correct directive 
+[ERROR] line 114: Not found data correct directive 
+[ERROR] line 117: Not found data correct directive 
+[ERROR] line 120: Not found data correct directive 
+[ERROR] line 123: Syntax error, label must be alpha numeric 
+[ERROR] line 123: Not found data correct directive 
+[ERROR] line 126: Not found data correct directive 
+[ERROR] line 128: DATA4 can't be local label
+[ERROR] line 131: Start can't be local label
+[ERROR] line 135: Not found data correct directive 
+[ERROR] line 145: Syntax error, label must end with ':' 
+[ERROR] line 148: Not found data correct directive 
+[ERROR] line 154: string must start and end with quotes 
+[ERROR] line 157: string must start and end with quotes 
+[ERROR] line 163: Label too large only 31 characters, label size is 34 
+[ERROR] line 166: No spaces found between directive and data or you missed set operand after a directive! 
+ [ERROR] line 169: No spaces found between directive and data or you missed set operand after a directive! 
+ [ERROR] line 172: Not found data correct directive 
+[ERROR] line 175: Not found rts command 
+ [ERROR] line 178: Not found rts command 
+ [INFO] Errors found 66
+[INFO] See all errors messages and warnings ,fix and run again

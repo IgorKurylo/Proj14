@@ -28,30 +28,45 @@ int firstRead(AsmFileContent asmContentFile, int *IC, int *DC, int lineNumber) {
         return 0;
     }
     /*parse if is entry directive and skip this*/
-    if (isEntryDirective(asmContentFile.line, &labelName)) {
+    if (isEntryDirective(asmContentFile.line, &labelName, lineNumber, &errorsCounter)) {
         return 0;
     }
     /*parse if is extern directive*/
-    if (isExternDirective(asmContentFile.line, &labelName, &errorsCounter)) {
-        row.name = labelName;
-        row.address = 0;
-        row.is_extern = 1;
-        rowType = symbol_external;
-        addSymbolInTable(labelName, rowType, 0, numberOfLine + 1, &errorsCounter);
+    if (isExternDirective(asmContentFile.line, &labelName, &errorsCounter, lineNumber)) {
+        if (isSymbolExists(labelName) == -1) {
+            row.name = labelName;
+            row.address = 0;
+            row.is_extern = 1;
+            rowType = symbol_external;
+            addSymbolInTable(labelName, rowType, 0, numberOfLine + 1, &errorsCounter);
+
+        } else {
+            printf("[ERROR] line %d: %s can't be local label\n", lineNumber, labelName);
+            errorsCounter++;
+        }
         return errorsCounter;
     }
     /* parse label*/
     if (parseLabel(asmContentFile.line, &labelName, numberOfLine + 1, &errorsCounter)) {
+        if (labelName == NULL) {
+            return errorsCounter;
+        }
         asmContentFile.isLabel = 1;
     }
     /* parse directive .data/.string */
     if (parseDirective(asmContentFile.line, &directiveData, numberOfLine + 1, &directiveType, &errorsCounter)) {
-        rowType = symbol_data;
-        if (asmContentFile.isLabel) {
-            addSymbolInTable(labelName, rowType, *DC, numberOfLine + 1, &errorsCounter);
-        }
         /* populate data directive */
-        populateDataDirective(DC, directiveType, directiveData, &errorsCounter, numberOfLine + 1);
+
+        /*add label to symbol table*/
+        if (labelName != NULL) {
+            rowType = symbol_data;
+            if (asmContentFile.isLabel) {
+                addSymbolInTable(labelName, rowType, *DC, numberOfLine + 1, &errorsCounter);
+            }
+        }
+        if (directiveData != NULL) {
+            populateDataDirective(DC, directiveType, directiveData, &errorsCounter, numberOfLine + 1);
+        }
         return errorsCounter;
         /*parse command */
     } else if (parseCommand(asmContentFile.line, &command, numberOfLine + 1, &numOfOperands, &errorsCounter,
