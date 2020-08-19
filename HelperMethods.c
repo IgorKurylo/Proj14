@@ -6,11 +6,11 @@
 #include <string.h>
 #include "MemorySnapShot.h"
 #include "Constanst.h"
-#include "DataStructers.h"
+#include "HelpersMethods.h"
 #include "ctype.h"
 
 const char *registers[] = {"r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7"};
-const HashMap asm_commands[] =
+const Command commands[] =
         {
                 {"mov",  {0,  0, 2}},
                 {"cmp",  {1,  0, 2}},
@@ -69,7 +69,7 @@ int isEmptyLine(char *line) {
     return 0;
 }
 
-int isComment(const char *line) {
+int isComment(char *line) {
     if (*line == ';')
         return 1;
     return 0;
@@ -144,9 +144,9 @@ char *parseLabel(char *line, char **labelName, int lineNumber, int *errorCounter
 
 int isCommandExists(char *command, int *numOfOperands) {
     int i = 0;
-    while (asm_commands[i].key) {
-        if (strcmp(command, asm_commands[i].key) == 0) {
-            *numOfOperands = asm_commands[i].value.numParams;
+    while (commands[i].key) {
+        if (strcmp(command, commands[i].key) == 0) {
+            *numOfOperands = commands[i].value.numParams;
             return i;
         }
         i++;
@@ -154,13 +154,13 @@ int isCommandExists(char *command, int *numOfOperands) {
     return -1;
 }
 
-HashMap commandOpCode_functCode(char *command) {
+Command commandOpCode_functCode(char *command) {
 
-    HashMap command_obj = {.value=-1};
+    Command command_obj = {.value=-1};
     int i = 0;
-    while (asm_commands[i].key) {
-        if (strcmp(command, asm_commands[i].key) == 0) {
-            command_obj = asm_commands[i];
+    while (commands[i].key) {
+        if (strcmp(command, commands[i].key) == 0) {
+            command_obj = commands[i];
         }
         i++;
     }
@@ -180,7 +180,7 @@ int isRegister(char *operand) {
 
 int validateCommandAddressType(char *command, int addressTypeSrc, int addressTypeDest) {
 
-    HashMap opCode = {0};
+    Command opCode = {0};
     int command_opCode = 0;
     opCode = commandOpCode_functCode(command);
     if (opCode.value.opCode != -1) {

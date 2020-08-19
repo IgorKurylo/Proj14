@@ -7,29 +7,47 @@
 
 #include "Constanst.h"
 
+/* check is empty line*/
 
-enum TYPE_SYMBOL{
-    symbol_code=1,symbol_data=2,symbol_external=3,symbol_entry=4
+enum TYPE_SYMBOL {
+    symbol_code = 1, symbol_data = 2, symbol_external = 3, symbol_entry = 4
 };
-typedef struct
-{
+/* check is empty line*/
+
+typedef struct {
     char *name;
     enum TYPE_SYMBOL type;
     int is_entry;
     int is_extern;
     int address;
-}SymbolTable;
-
+} SymbolTable;
+/* check is empty line*/
 extern SymbolTable *table;
+/* check is empty line*/
+
 extern int tableSize;
 
+/* check is empty line*/
+
 SymbolTable *allocateTable();
-int addSymbol(SymbolTable row,int currentIndex);
-SymbolTable getTableRow(int index);
-int checkIfSymbolExists(char *symbolName,int lineNumber);
+
+/* check is empty line*/
+
+int addSymbol(SymbolTable row, int currentIndex);
+
+/* check is empty line*/
+
+int checkIfSymbolExists(char *symbolName, int lineNumber);
+
+/* check is empty line*/
+
 void updateIsEntrySymbol(int index);
+
+/* check is empty line*/
+
 void updateSymbolTable(int IC);
-void updateAddress(int address,int index);
+
+/* check is empty line*/
 void freeTable();
 
 #endif //PROJECTMAMAN14_SYMBOLTABLE_H

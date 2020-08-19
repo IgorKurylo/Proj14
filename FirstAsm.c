@@ -1,11 +1,10 @@
 //
 // Created by Igork on 13/06/2020.
 //
-
-#include "HelpersMethods.h"
-#include "SymbolTable.h"
 #include <stdio.h>
-#include "FileMethods.h"
+#include "SymbolTable.h"
+#include "HelpersMethods.h"
+
 
 void addSymbolInTable(char *label, int type, int address, int lineNumber, int *errorCounter) {
     SymbolTable row = {};

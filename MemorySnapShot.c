@@ -13,7 +13,6 @@
 int dataSnapShotMemory[MAX_DATA];
 int dataSize;
 // Array of machine code memory saving & current size
-MachineCode *machineCode;
 int machineCodeSize = 0;
 
 // Array of external Labels

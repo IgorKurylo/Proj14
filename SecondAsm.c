@@ -2,31 +2,20 @@
 // Created by Igork on 19/07/2020.
 //
 
-#include "FileMethods.h"
 #include "HelpersMethods.h"
 #include "SymbolTable.h"
 #include "MemorySnapShot.h"
 #include <string.h>
+#include "SecondAsm.h"
 
 
-void buildMachineCodeOneOperand(const int *IC, int lineNumber, char *firstOperand,
-                                int labelAddress, int isDistanceLabel, int symbolIndex, const int *destAddressType,
-                                const int *operandType, int *destOffset, HashMap command, int valueDest);
-
-void buildMachineCodeDirective(int lineNumber, char *data, int directiveType, int *errorCounter);
-
-void adaptOffsetsByAddressType(int destAddressType, int srcAddressType, int *srcOffset, int *destOffset);
-
-void updateExternalLabelAddress(int IC, int isSrcExternalLabel,
-                                int isDestExternalLabel, char *firstOperand, char *secondOperand);
-
-// second read of the asm file
+/* Second Read function which, parse labels,calculate distance of jmps,jre,bne commands , calculate IC and  build binary machine code */
 int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
 
     char *labelOperand, *command, *operands, *firstOperand, *secondOperand, *directiveData;
-    int errorCounter = 0, labelDestAddress = 0, labelSrcAddress = 0, distanceOfJmpCommands = 0, isDistanceLabel = 0, regDest = -1, regSrc = -1, isSrcExternalLabel = 0, isDestExternalLabel = 0,
+    int errorCounter = 0, labelDestAddress = 0, labelSrcAddress = 0, isDistanceLabel = 0, regDest = -1, regSrc = -1, isSrcExternalLabel = 0, isDestExternalLabel = 0,
             directiveType = 0, symbolIndex = 0, numOfOperands = 0, destAddressType = -1, srcAddressType = -1, operandDestType = -1, operandSrcType = -1, destOffset = 0, srcOffset = 0, valueSrc, valueDest;
-    HashMap commandObj;
+    Command commandObj;
     if (isComment(asmContentFile.line) || isEmptyLine(asmContentFile.line)) {
         return 0;
     }
@@ -208,7 +197,7 @@ void adaptOffsetsByAddressType(int destAddressType, int srcAddressType, int *src
 // build machine code on one operand
 void buildMachineCodeOneOperand(const int *IC, int lineNumber, char *firstOperand,
                                 int labelAddress, int isDistanceLabel, int symbolIndex, const int *destAddressType,
-                                const int *operandType, int *destOffset, HashMap command, int valueDest) {
+                                const int *operandType, int *destOffset, Command command, int valueDest) {
     int regDest = -1, distanceOfJmpCommands = -1, value = 0, tempIC = 0;
     if ((*operandType) == label_operand) {
         symbolIndex = checkIfSymbolExists(firstOperand, lineNumber);

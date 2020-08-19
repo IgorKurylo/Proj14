@@ -1,7 +1,7 @@
 //
 // Created by Igork on 30/05/2020.
 //
-
+#include "Constanst.h"
 #ifndef PROJECTMAMAN14_DATASTRUCTERS_H
 typedef struct {
     int opCode;
@@ -12,19 +12,13 @@ typedef struct {
 typedef struct {
     char *key;
     commandMetaData value;
+} Command;
 
-} HashMap;
-
-
-//typedef struct {
-//    char name[MAX_SYMBOL_SIZE];
-//    int address;
-//} EntriesTable;
-//
-//typedef struct {
-//    char name[MAX_SYMBOL_SIZE];
-//    int address;
-//} ExternalTable;
-
+typedef struct {
+    char line[MAX_LINE_SIZE];
+    int lineNumber;
+    int lineSize;
+    int isLabel;
+} AsmFileContent;
 
 #endif //PROJECTMAMAN14_DATASTRUCTERS_H
