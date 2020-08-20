@@ -151,8 +151,8 @@ int parseLabel(char *line, char **labelName, int lineNumber, int *errorCounter) 
         }
     } else {
         startLineString = getStringOnStartLine(line, labelName, originalLine, count);
-        if (isCommandExists(startLineString, &number)) {
-            return -1;
+        if (isCommandExists(startLineString, &number) >= 0) {
+            return -1; /*check is is command and we want parse command*/
         }
         if (isAlphaNumeric(startLineString)) {
             printf("[ERROR] line %d: Label is not valid\n", lineNumber);
@@ -797,7 +797,7 @@ int isDataFormattingCorrect(char *directiveData, int *errorCounter, int lineNumb
         while (directiveData[j] >= '0' && directiveData[j] <= '9') {
             j++;
         }
-        if (directiveData[j] == DELIM_CHAR) {
+        if (directiveData[j] == DELIM_CHAR && directiveData[j + 1] == DELIM_CHAR) {
             delim_counter++;
             i = j;
             j++;

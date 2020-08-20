@@ -132,7 +132,7 @@ int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
                                     isDestExternalLabel = table[symbolIndex].is_extern;
                                 }
                             } else {
-                                printf("[ERROR] line %d: %s not found on symbol table\n", lineNumber, firstOperand);
+                                printf("[ERROR] line %d: %s not found on symbol table\n", lineNumber, secondOperand);
                             }
                         }
                         destOffset = calculateOffsetAddress(destAddressType);
