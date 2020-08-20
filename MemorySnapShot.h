@@ -1,6 +1,5 @@
-//
-// Created by Igork on 14/07/2020.
-//
+/* Created by Igork on 30/05/2020.*/
+
 
 #ifndef PROJ14_MEMORYSNAPSHOT_H
 #define PROJ14_MEMORYSNAPSHOT_H
@@ -70,4 +69,4 @@ void addExternalLabel(int IC, char *label);
 
 void freeMemory();
 
-#endif //PROJ14_MEMORYSNAPSHOT_H
+#endif

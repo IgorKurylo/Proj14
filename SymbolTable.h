@@ -1,6 +1,6 @@
-//
-// Created by Igork on 13/06/2020.
-//
+
+/*Created by Igork on 13/06/2020 */
+
 
 #ifndef PROJECTMAMAN14_SYMBOLTABLE_H
 #define PROJECTMAMAN14_SYMBOLTABLE_H
@@ -43,4 +43,4 @@ void updateSymbolTable(int IC);
 /* free table*/
 void freeTable();
 
-#endif //PROJECTMAMAN14_SYMBOLTABLE_H
+#endif

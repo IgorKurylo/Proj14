@@ -1,6 +1,6 @@
 EXEC_FILE = main
-SRC_FILES = main.c FirstAsm.c SecondAsm.c FileMethods.c MemorySnapShot.c SymbolTable.c
-HEADER_FILES = FirstAsm.h SecondAsm.h FileMethods.h MemorySnapShot.h SymbolTable.h DataStructers.h
+SRC_FILES = main.c FirstAsm.c SecondAsm.c FileMethods.c MemorySnapShot.c SymbolTable.c HelperMethods.c
+HEADER_FILES = FirstAsm.h SecondAsm.h FileMethods.h MemorySnapShot.h SymbolTable.h DataStructers.h HelperMethods.h Constant.h
 
 O_FILES = $(SRC_FILES:.c=.o)
 

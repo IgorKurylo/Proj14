@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
                     for (index = 0; index < fileLines; index++) {
                         errorsFirstRead += firstRead(asmContentFile[index], &IC, &DC, index);
                     }
-                    //print errors if we find it in first read, if not save the IC & DC final values.
+                    /*print errors if we find it in first read, if not save the IC & DC final values.*/
                     if (errorsFirstRead > 0) {
                         printf("[INFO] Errors found %d\n", errorsFirstRead);
                         printf("[INFO] See all errors messages and warnings ,fix and run again\n");

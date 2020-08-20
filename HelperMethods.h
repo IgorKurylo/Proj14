@@ -1,6 +1,4 @@
-//
-// Created by Igork on 30/05/2020.
-//
+/* Created by Igork on 30/05/2020.*/
 
 #ifndef PROJECTMAMAN14_HELPERSMETHODS_H
 
@@ -102,4 +100,4 @@ void adjustOffsetOfSrcDest(int sourceAddressType, int destAddressType, int *srcO
 
 int isLabel(char *line);
 
-#endif //PROJECTMAMAN14_HELPERSMETHODS_H
+#endif

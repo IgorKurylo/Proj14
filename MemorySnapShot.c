@@ -1,23 +1,20 @@
-//
-// Created by Igork on 14/07/2020.
-//
+/* Created by Igork on 30/05/2020.*/
+
 
 #include "Constanst.h"
 #include <string.h>
 #include "MemorySnapShot.h"
-#include "HelpersMethods.h"
+#include "HelperMethods.h"
 #include <stdio.h>
 #include <stdlib.h>
 
-// Array for Data snap shot saving & current size
+/* Array for Data snap shot saving & current size*/
 int dataSnapShotMemory[MAX_DATA];
 int dataSize;
-// Array of machine code memory saving & current size
+/* Array of machine code memory saving & current size*/
 int machineCodeSize = 0;
-
-// Array of external Labels
+/* Array of external Labels */
 char **externalLabels;
-
 int *memoryCodeArray;
 
 int *
@@ -62,7 +59,6 @@ saveToSnapShotMemory(char *data, int directiveType, int *DC, int *deltaCounter, 
 
 
 int *initMachineMemoryCode(int sizeOfMachineCode) {
-    //machineCode = (MachineCode *) malloc(sizeof(MachineCode) * sizeOfMachineCode);
     memoryCodeArray = (int *) malloc(sizeof(int) * sizeOfMachineCode);
     if (memoryCodeArray == NULL) {
         printf("[ERROR] Machine code allocation fail\n");
@@ -80,7 +76,7 @@ saveInstruction(unsigned int opcode, unsigned int funct, unsigned int sourceOper
                 unsigned int destAddressType) {
     int index = machineCodeSize;
     int *machine_code_value;
-    Instruction instruction = {};
+    Instruction instruction = {0};
     instruction.opCode = opcode;
     instruction.funct = funct;
     instruction.srcRegister = sourceOperand;
@@ -98,7 +94,7 @@ saveWord(unsigned int value, unsigned int addressType,
          int isLabelExternal) {
     int index = 0, *value_word;
     index = machineCodeSize;
-    Word word = {};
+    Word word = {0};
     if (addressType != -1) {
         if (addressType == DIRECT_ADDRESSING) {
             if (isLabelExternal != -1) {
@@ -118,7 +114,7 @@ saveWord(unsigned int value, unsigned int addressType,
 void saveData(unsigned int value) {
     int index = 0, *data_value;
     index = machineCodeSize;
-    Data data = {};
+    Data data = {0};
     data.dataValue = value;
     data_value = (int *) &data;
     memoryCodeArray[index] = *data_value;

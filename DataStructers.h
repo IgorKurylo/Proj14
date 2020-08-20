@@ -1,6 +1,5 @@
-//
-// Created by Igork on 30/05/2020.
-//
+/* Created by Igork on 30/05/2020.*/
+
 #include "Constanst.h"
 #ifndef PROJECTMAMAN14_DATASTRUCTERS_H
 typedef struct {
@@ -21,4 +20,4 @@ typedef struct {
     int isLabel;
 } AsmFileContent;
 
-#endif //PROJECTMAMAN14_DATASTRUCTERS_H
+#endif

@@ -1,6 +1,5 @@
-//
-// Created by Igork on 30/05/2020.
-//
+/* Created by Igork on 30/05/2020.*/
+
 #ifndef PROJECTMAMAN14_FILEMETHODS_H
 
 #include <stdlib.h>
@@ -33,4 +32,4 @@ void writeExternFile(char **externalsLabelsArray, int size, char *fileName);
 /* get file name*/
 char *getFileName(char *file);
 
-#endif //PROJECTMAMAN14_FILEMETHODS_H
+#endif

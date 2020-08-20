@@ -1,17 +1,13 @@
-//
-// Created by Igork on 19/07/2020.
-//
 
-#include "HelpersMethods.h"
+/* Created by Igork on 19/07/2020.*/
+
+#include "HelperMethods.h"
 #include "SymbolTable.h"
 #include "MemorySnapShot.h"
 #include <string.h>
 #include "SecondAsm.h"
 
 
-void calculateExternalLabelsAdresses(const int *IC, const char *firstOperand, const char *secondOperand,
-                                     int isSrcExternalLabel, int isDestExternalLabel, int destAddressType,
-                                     int srcAddressType, int destOffset, int srcOffset);
 
 /* Second Read function which, parse labels,calculate distance of jmp,jre,bne commands , calculate IC and  build binary machine code */
 int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
@@ -69,7 +65,7 @@ int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
                 if (firstOperand != NULL) {
                     if (validateOperand(firstOperand, &destAddressType, lineNumber, &errorCounter, &valueDest,
                                         &operandDestType)) {
-                        if (operandDestType == 2) { // if operand is label
+                        if (operandDestType == 2) { /* if operand is label */
                             symbolIndex = isSymbolExists(firstOperand);
                             if (symbolIndex != -1) {
                                 labelDestAddress = table[symbolIndex].address;
@@ -107,7 +103,7 @@ int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
                 if (firstOperand != NULL) {
                     if (validateOperand(firstOperand, &srcAddressType, lineNumber, &errorCounter, &valueSrc,
                                         &operandSrcType)) {
-                        if (operandSrcType == 2) { // if operand is label
+                        if (operandSrcType == 2) { /* if operand is label */
                             symbolIndex = isSymbolExists(firstOperand);
                             if (symbolIndex != -1) {
                                 labelSrcAddress = table[symbolIndex].address;
@@ -128,7 +124,7 @@ int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
                 if (secondOperand != NULL) {
                     if (validateOperand(secondOperand, &destAddressType, lineNumber, &errorCounter, &valueDest,
                                         &operandDestType)) {
-                        if (operandDestType == 2) { // if operand is label
+                        if (operandDestType == 2) { /* if operand is label*/
                             symbolIndex = isSymbolExists(secondOperand);
                             if (symbolIndex != -1) {
                                 labelDestAddress = table[symbolIndex].address;
@@ -245,7 +241,7 @@ void adaptOffsetsByAddressType(int destAddressType, int srcAddressType, int *src
 void buildMachineCodeOneOperand(const int *IC, int lineNumber, char *firstOperand,
                                 int labelAddress, int isDistanceLabel, int symbolIndex, const int *destAddressType,
                                 const int *operandType, int *destOffset, Command command, int valueDest) {
-    int regDest = -1, distanceOfJmpCommands = -1, value = 0, tempIC = 0;
+    int regDest = -1, distanceOfJmpCommands = -1, value = 0;
     if ((*operandType) == label_operand) {
         symbolIndex = isSymbolExists(firstOperand);
         if (symbolIndex == -1) {
@@ -256,9 +252,9 @@ void buildMachineCodeOneOperand(const int *IC, int lineNumber, char *firstOperan
             saveInstruction(command.value.opCode, command.value.funct, 0, 0, 0, *destAddressType);
             if (isDistanceLabel) {
                 distanceOfJmpCommands = labelAddress - (*IC + *destOffset + INIT_ADDRESS);
-                //build machine code with this distance value
+                /*build machine code with this distance value */
                 value = convertTo2Complement(
-                        distanceOfJmpCommands); // convert to 2 complement the distance can be negative
+                        distanceOfJmpCommands); /* convert to 2 complement the distance can be negative */
                 saveWord(value, *destAddressType,
                          table[symbolIndex].is_extern);
             } else {

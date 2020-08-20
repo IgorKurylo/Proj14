@@ -1,7 +1,4 @@
-//
-// Created by Igork on 19/07/2020.
-//
-
+/* Created by Igork on 19/07/2020.*/
 
 #ifndef PROJ14_SECONDASM_H
 #define PROJ14_SECONDASM_H
@@ -22,9 +19,6 @@ void buildMachineCodeDirective(int lineNumber, char *data, int directiveType, in
 void adaptOffsetsByAddressType(int destAddressType, int srcAddressType, int *srcOffset, int *destOffset);
 
 /* update the symbol which is external by correct address*/
-//void updateExternalLabelAddress(int IC, int isSrcExternalLabel,
-//                                int isDestExternalLabel, char *firstOperand, char *secondOperand);
-
 void updateExternalLabelAddress(int IC, char *operand);
 
 /* build machine code two operands*/
@@ -35,4 +29,4 @@ void buildMachineCode2Operands(char *firstOperand, char *secondOperand, int labe
 void calculateExternalLabelsAddresses(const int *IC, char *firstOperand, char *secondOperand,
                                       int isSrcExternalLabel, int isDestExternalLabel, int destAddressType,
                                       int srcAddressType, int destOffset, int srcOffset);
-#endif //PROJ14_SECONDASM_H
+#endif

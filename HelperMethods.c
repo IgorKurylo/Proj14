@@ -1,12 +1,11 @@
-//
-// Created by Igork on 01/06/2020.
-//
+/* Created by Igork on 30/05/2020.*/
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include "MemorySnapShot.h"
 #include "Constanst.h"
-#include "HelpersMethods.h"
+#include "HelperMethods.h"
 #include "ctype.h"
 
 /* const array for registers*/

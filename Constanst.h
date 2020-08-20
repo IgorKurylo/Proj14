@@ -1,6 +1,6 @@
-//
-// Created by Igork on 30/05/2020.
-//
+
+/* Created by Igork on 30/05/2020.*/
+
 
 #ifndef PROJECTMAMAN14_CONSTANST_H
 #define DELIM ","
@@ -21,8 +21,7 @@
 #define DATA_DIRECTIVE 1
 #define STRING_DIRECTIVE 2
 #define REGISTER_TYPE 0
-#define NUMBER_TYPE 1
-#define LABEL_TYPE 2
+
 #define ENTRY ".entry"
 #define EXTERN ".extern"
 #define label_operand 2
@@ -30,4 +29,4 @@
 #define register_operand 0
 
 
-#endif //PROJECTMAMAN14_CONSTANST_H
+#endif

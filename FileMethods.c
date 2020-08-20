@@ -1,12 +1,12 @@
-//
-// Created by Igork on 30/05/2020.
-//
+/* Created by Igork on 30/05/2020.*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "FileMethods.h"
 
-void printBits(int a);
+
+/* Read file function*/
 
 FILE *readFile(char *fileName, char *extension) {
 
@@ -20,6 +20,7 @@ FILE *readFile(char *fileName, char *extension) {
     }
 }
 
+/* Read file and save it on asm file content struct*/
 
 AsmFileContent *fileContent(FILE *file, int *fileLines) {
     AsmFileContent *asmFileContent;
@@ -38,6 +39,8 @@ AsmFileContent *fileContent(FILE *file, int *fileLines) {
 
 }
 
+/*write entry file*/
+
 void writeEntryFile(SymbolTable *tableArray, int size, char *fileName) {
     int i = 0;
     FILE *filePtr;
@@ -54,6 +57,8 @@ void writeEntryFile(SymbolTable *tableArray, int size, char *fileName) {
     }
 
 }
+
+/*write extern file*/
 
 void writeExternFile(char **externalsLabelsArray, int size, char *fileName) {
     int i = 0;
@@ -72,10 +77,12 @@ void writeExternFile(char **externalsLabelsArray, int size, char *fileName) {
     }
 }
 
+/* get file name*/
+
 char *getFileName(char *file) {
     char *fileName = NULL;
     int index = 0;
-    if (strchr(file, '.') != NULL) { // if the argument pass with extension
+    if (strchr(file, '.') != NULL) { /* if the argument pass with extension*/
         fileName = (char *) malloc(sizeof(char) * strlen(file));
         if (fileName != NULL) {
             while (*file != '.') {
@@ -89,6 +96,8 @@ char *getFileName(char *file) {
         return file;
     }
 }
+
+/* write machine code to file*/
 
 void writeMachineCodeFile(int IC, int DC, const int *machine_code, char *fileName) {
     int index = 0, Value = 0;

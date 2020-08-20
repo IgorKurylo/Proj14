@@ -1,6 +1,5 @@
-//
-// Created by Igork on 21/06/2020.
-//
+
+/* Created by Igork on 21/06/2020.*/
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -59,7 +58,7 @@ int isSymbolExists(char *symbolName) {
     int i = 0;
     for (i = 0; i < tableSize; i++) {
         if (strcmp(symbolName, table[i].name) == 0) {
-            return i; // return the index in array of the symbol
+            return i; /* return the index in array of the symbol*/
         }
     }
     return -1;

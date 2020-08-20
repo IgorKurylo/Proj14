@@ -1,13 +1,12 @@
-//
-// Created by Igork on 13/06/2020.
-//
+/* Created by Igork on 30/05/2020.*/
+
 #include <stdio.h>
 #include "SymbolTable.h"
-#include "HelpersMethods.h"
+#include "HelperMethods.h"
 
 /*add symbol to symbols table*/
 void addSymbolInTable(char *label, int type, int address, int lineNumber, int *errorCounter) {
-    SymbolTable row = {};
+    SymbolTable row = {0};
     int result = 0;
     row.name = label;
     row.address = address;
@@ -23,7 +22,7 @@ void addSymbolInTable(char *label, int type, int address, int lineNumber, int *e
 int firstRead(AsmFileContent asmContentFile, int *IC, int *DC, int lineNumber) {
     char *labelName = NULL, *command = NULL, *directiveData = NULL, *operands = NULL;
     int numberOfLine = lineNumber, directiveType = 0, errorsCounter = 0, rowType = 0, numOfOperands, result = -1;
-    SymbolTable row = {};
+    SymbolTable row = {0};
     if (isComment(asmContentFile.line) || isEmptyLine(asmContentFile.line)) {
         return 0;
     }
@@ -73,8 +72,9 @@ int firstRead(AsmFileContent asmContentFile, int *IC, int *DC, int lineNumber) {
     }
     /*parse command */
     if (parseCommand(asmContentFile.line, &command, numberOfLine + 1, &numOfOperands, &errorsCounter,
-                     &operands)) { // parse command
+                     &operands)) {
         rowType = symbol_code;
+        /*add label to symbol table we find before*/
         if (asmContentFile.isLabel) {
             addSymbolInTable(labelName, rowType, INIT_ADDRESS + *IC, numberOfLine + 1, &errorsCounter);
         }
