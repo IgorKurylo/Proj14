@@ -9,10 +9,14 @@
 #include "SecondAsm.h"
 
 
-/* Second Read function which, parse labels,calculate distance of jmps,jre,bne commands , calculate IC and  build binary machine code */
+void calculateExternalLabelsAdresses(const int *IC, const char *firstOperand, const char *secondOperand,
+                                     int isSrcExternalLabel, int isDestExternalLabel, int destAddressType,
+                                     int srcAddressType, int destOffset, int srcOffset);
+
+/* Second Read function which, parse labels,calculate distance of jmp,jre,bne commands , calculate IC and  build binary machine code */
 int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
 
-    char *labelOperand, *command, *operands, *firstOperand, *secondOperand, *directiveData;
+    char *labelOperand = NULL, *command = NULL, *operands = NULL, *firstOperand = NULL, *secondOperand = NULL, *directiveData = NULL;
     int errorCounter = 0, labelDestAddress = 0, labelSrcAddress = 0, isDistanceLabel = 0, regDest = -1, regSrc = -1, isSrcExternalLabel = 0, isDestExternalLabel = 0,
             directiveType = 0, symbolIndex = 0, numOfOperands = 0, destAddressType = -1, srcAddressType = -1, operandDestType = -1, operandSrcType = -1, destOffset = 0, srcOffset = 0, valueSrc = 0, valueDest = 0;
     Command commandObj;
@@ -50,7 +54,6 @@ int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
         switch (numOfOperands) {
             case 0:
                 ++(*IC);
-
                 saveInstruction(commandObj.value.opCode, commandObj.value.funct, 0, 0, 0, 0);
                 break;
             case 1:
@@ -66,19 +69,38 @@ int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
                 if (firstOperand != NULL) {
                     if (validateOperand(firstOperand, &destAddressType, lineNumber, &errorCounter, &valueDest,
                                         &operandDestType)) {
+                        if (operandDestType == 2) { // if operand is label
+                            symbolIndex = isSymbolExists(firstOperand);
+                            if (symbolIndex != -1) {
+                                labelDestAddress = table[symbolIndex].address;
+                                if (table[symbolIndex].is_extern && labelDestAddress == 0) {
+                                    isDestExternalLabel = table[symbolIndex].is_extern;
+                                }
+
+                            } else {
+                                printf("[ERROR] line %d: %s not found on symbol table\n", lineNumber, firstOperand);
+                            }
+                        }
+                        destOffset = calculateOffsetAddress(destAddressType);
+                        if (isDestExternalLabel) {
+                            updateExternalLabelAddress(*IC + destOffset, firstOperand);
+                        }
+                        if ((destAddressType) == REGISTER_TYPE) {
+                            (destOffset) = 0;
+                        }
+
+                        *IC += destOffset + 1;
+
+
                         buildMachineCodeOneOperand(IC, lineNumber, firstOperand, labelDestAddress,
                                                    isDistanceLabel, symbolIndex,
                                                    &destAddressType, &operandDestType, &destOffset,
                                                    commandObj, valueDest);
-
-
                     }
-                }
-                if ((destAddressType) == REGISTER_TYPE) {
-                    (destOffset) = 0;
+
                 }
 
-                *IC += destOffset + 1;
+
                 break;
             case 2:
                 parseTwoOperands(operands, &firstOperand, &secondOperand);
@@ -97,9 +119,10 @@ int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
                                 printf("[ERROR] line %d: %s not found on symbol table\n", lineNumber, firstOperand);
                             }
                         }
+
                         srcOffset = calculateOffsetAddress(srcAddressType);
-                        updateExternalLabelAddress(*IC + srcOffset + 1, isSrcExternalLabel, isDestExternalLabel,
-                                                   firstOperand, secondOperand);
+
+
                     }
                 }
                 if (secondOperand != NULL) {
@@ -117,20 +140,19 @@ int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
                             }
                         }
                         destOffset = calculateOffsetAddress(destAddressType);
-                        updateExternalLabelAddress(*IC + destOffset + 1, isSrcExternalLabel, isDestExternalLabel,
-                                                   firstOperand, secondOperand);
+
                     }
                 }
-
+                adaptOffsetsByAddressType(destAddressType, srcAddressType, &srcOffset, &destOffset);
+                calculateExternalLabelsAddresses(IC, firstOperand, secondOperand, isSrcExternalLabel,
+                                                isDestExternalLabel, destAddressType, srcAddressType,
+                                                destOffset, srcOffset);
+                *IC += srcOffset + destOffset + 1;
                 buildMachineCode2Operands(firstOperand, secondOperand, labelDestAddress, labelSrcAddress, regDest,
                                           regSrc, isSrcExternalLabel,
                                           isDestExternalLabel, destAddressType, srcAddressType, operandDestType,
                                           operandSrcType, valueSrc, valueDest,
                                           &commandObj);
-                adaptOffsetsByAddressType(destAddressType, srcAddressType, &srcOffset, &destOffset);
-
-                *IC += srcOffset + destOffset + 1;
-
                 break;
             default:
                 break;
@@ -138,6 +160,23 @@ int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
         return errorCounter;
     }
 
+}
+
+void calculateExternalLabelsAddresses(const int *IC, char *firstOperand, char *secondOperand,
+                                      int isSrcExternalLabel, int isDestExternalLabel, int destAddressType,
+                                      int srcAddressType, int destOffset, int srcOffset) {
+    if (srcAddressType == DIRECT_ADDRESSING && destAddressType == DIRECT_ADDRESSING) {
+        if (isSrcExternalLabel && isDestExternalLabel) {
+            updateExternalLabelAddress(*IC + srcOffset, firstOperand);
+            updateExternalLabelAddress(*IC + destOffset + 1, secondOperand);
+        }
+    } else if (srcAddressType == DIRECT_ADDRESSING || destAddressType == DIRECT_ADDRESSING) {
+        if (isSrcExternalLabel) {
+            updateExternalLabelAddress(*IC + srcOffset + 1, firstOperand);
+        } else if (isDestExternalLabel) {
+            updateExternalLabelAddress(*IC + destOffset + 1, secondOperand);
+        }
+    }
 }
 
 void buildMachineCode2Operands(char *firstOperand, char *secondOperand, int labelDestAddress, int labelSrcAddress,
@@ -183,19 +222,9 @@ void buildMachineCode2Operands(char *firstOperand, char *secondOperand, int labe
 }
 
 /* update the symbol which is external by correct address*/
-void updateExternalLabelAddress(int IC, int isSrcExternalLabel,
-                                int isDestExternalLabel, char *firstOperand, char *secondOperand) {
+void updateExternalLabelAddress(int IC, char *operand) {
 
-    if (isSrcExternalLabel && isDestExternalLabel) {
-        /*the two of operand is external so the take two words*/
-        /* adding offset 1 to IC  for a second label */
-        addExternalLabel(IC, firstOperand);
-        addExternalLabel(IC + 1, secondOperand);
-    } else if (isSrcExternalLabel) {
-        addExternalLabel(IC, firstOperand);
-    } else if (isDestExternalLabel) {
-        addExternalLabel(IC, secondOperand);
-    }
+    addExternalLabel(IC, operand);
 }
 
 /* adapt offsets by addressing types*/
@@ -236,10 +265,10 @@ void buildMachineCodeOneOperand(const int *IC, int lineNumber, char *firstOperan
                 saveWord(labelAddress, *destAddressType,
                          table[symbolIndex].is_extern);
             }
-            // build machine code with extra value
+
         }
     } else if ((*operandType) == register_operand) {
-        // is register , save instruction with register
+        /*is register , save instruction with register*/
         regDest = isRegister(firstOperand);
         saveInstruction(command.value.opCode, command.value.funct, 0, 0, regDest, *destAddressType);
     } else if ((*operandType) == number_operand) {

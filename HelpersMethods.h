@@ -61,8 +61,8 @@ int validateOperand(char *operand, int *addressType, int line, int *errorCounter
 /* validate command address type is a command have operand with valid address type*/
 int validateCommandAddressType(char *command, int addressTypeSrc, int addressTypeDest);
 
-/* check is directive*/
-int checkIsDirective(char *line,  char *originalLine, int *counter, const char *type);
+/* check is directive entry or external*/
+int checkIsDirective(char *line,  char *originalLine, int *counter, const char *type,int lineNumber,int* errorCounter);
 
 /* extract operand from directive,label,etc*/
 void extractOperand(char *line, char **label, char *originalLine, int counter);

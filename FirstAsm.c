@@ -29,7 +29,7 @@ int firstRead(AsmFileContent asmContentFile, int *IC, int *DC, int lineNumber) {
     }
     /*parse if is entry directive and skip this*/
     if (isEntryDirective(asmContentFile.line, &labelName, lineNumber, &errorsCounter)) {
-        return 0;
+        return errorsCounter;
     }
     /*parse if is extern directive*/
     if (isExternDirective(asmContentFile.line, &labelName, &errorsCounter, lineNumber)) {
@@ -47,15 +47,15 @@ int firstRead(AsmFileContent asmContentFile, int *IC, int *DC, int lineNumber) {
         return errorsCounter;
     }
     /* parse label*/
-    if (parseLabel(asmContentFile.line, &labelName, numberOfLine + 1, &errorsCounter)) {
-        if (labelName == NULL) {
-            return errorsCounter;
-        }
+    result = parseLabel(asmContentFile.line, &labelName, numberOfLine + 1, &errorsCounter);
+    if (result != -1) {
         asmContentFile.isLabel = 1;
     }
+    if (result == 0)
+        return errorsCounter;
+
     /* parse directive .data/.string */
     if (parseDirective(asmContentFile.line, &directiveData, numberOfLine + 1, &directiveType, &errorsCounter)) {
-        /* populate data directive */
 
         /*add label to symbol table*/
         if (labelName != NULL) {
@@ -64,13 +64,16 @@ int firstRead(AsmFileContent asmContentFile, int *IC, int *DC, int lineNumber) {
                 addSymbolInTable(labelName, rowType, *DC, numberOfLine + 1, &errorsCounter);
             }
         }
+        /* populate data directive */
         if (directiveData != NULL) {
             populateDataDirective(DC, directiveType, directiveData, &errorsCounter, numberOfLine + 1);
         }
         return errorsCounter;
-        /*parse command */
-    } else if (parseCommand(asmContentFile.line, &command, numberOfLine + 1, &numOfOperands, &errorsCounter,
-                            &operands)) { // parse command
+
+    }
+    /*parse command */
+    if (parseCommand(asmContentFile.line, &command, numberOfLine + 1, &numOfOperands, &errorsCounter,
+                     &operands)) { // parse command
         rowType = symbol_code;
         if (asmContentFile.isLabel) {
             addSymbolInTable(labelName, rowType, INIT_ADDRESS + *IC, numberOfLine + 1, &errorsCounter);

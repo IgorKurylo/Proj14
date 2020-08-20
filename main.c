@@ -68,12 +68,13 @@ int main(int argc, char *argv[]) {
                     }
 
                 }
+                freeTable();
+                freeMemory();
+
             } else {
                 printf("[ERROR] File %s not exists\n", fileName);
             }
         }
-
-
     }
     return 0;
 }

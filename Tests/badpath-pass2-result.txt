@@ -1,0 +1,7 @@
+[ERROR] line 28: Q not found on symbol table
+[ERROR] line 31: r3 not found on symbol table
+[ERROR] line 34: X not found on symbol table
+[ERROR] line 37: r5 not found on symbol table
+[ERROR] line 46: Q symbol not exists in symbol table
+[ERROR] line 49: X symbol not exists in symbol table
+[ERROR] line 52: Y symbol not exists in symbol table

@@ -66,7 +66,6 @@ void writeExternFile(char **externalsLabelsArray, int size, char *fileName) {
             if (externalsLabelsArray[i] != NULL) {
                 fprintf(filePtr, "%s\t%07d\n", externalsLabelsArray[i], INIT_ADDRESS + i);
             }
-
         }
         fclose(filePtr);
         printf("[INFO] File %s successfully created\n", fileName);
@@ -92,12 +91,12 @@ char *getFileName(char *file) {
 }
 
 void writeMachineCodeFile(int IC, int DC, const int *machine_code, char *fileName) {
-    int index = 0,Value = 0;
+    int index = 0, Value = 0;
     FILE *filePtr;
     strcat(fileName, OBJECT_FILE);
     filePtr = fopen(fileName, "w");
     fprintf(filePtr, "%7d\t%d\n", IC, DC);
-    for (index = 0; index < machineCodeSize && index<(IC+DC); index++) {
+    for (index = 0; index < machineCodeSize && index < (IC + DC); index++) {
         Value = machine_code[index];
         fprintf(filePtr, "%07d\t%06x\n", index + INIT_ADDRESS, Value);
     }
@@ -106,13 +105,8 @@ void writeMachineCodeFile(int IC, int DC, const int *machine_code, char *fileNam
 
 }
 
-void printBits(int a) {
-    int i = 0;
-    for (i = 23; i >= 0; i--) {
-        if ((a & (1 << i)) != 0) {
-            putchar('1');
-        } else {
-            putchar('0');
-        }
+void freeFileContent(AsmFileContent *asmFileContent) {
+    if (asmFileContent != NULL) {
+        free(asmFileContent);
     }
 }

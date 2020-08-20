@@ -30,11 +30,11 @@ saveToSnapShotMemory(char *data, int directiveType, int *DC, int *deltaCounter, 
         case DATA_DIRECTIVE:
             numberStr = strtok(data, DELIM);
             while (numberStr) {
-                if (numberValidation(numberStr,MEMORY_WORD_SIZE, &value, lineNumber, errorCounter)) {
+                if (numberValidation(numberStr, MEMORY_WORD_SIZE, &value, lineNumber, errorCounter)) {
                     dataSnapShotMemory[counterOfData] = value;
                     ++counterOfData;
                     numberStr = strtok(NULL, DELIM);
-                }else{
+                } else {
                     numberStr = strtok(NULL, DELIM);
                 }
             }
@@ -141,4 +141,13 @@ void addExternalLabel(int IC, char *label) {
     }
 }
 
+void freeMemory() {
+    if (memoryCodeArray != NULL) {
+        machineCodeSize = 0;
+        free(memoryCodeArray);
+    }
+    if (externalLabels != NULL) {
+        free(externalLabels);
+    }
+}
 

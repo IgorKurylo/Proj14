@@ -68,5 +68,6 @@ char **initExternalLabels(int sizeOfIC);
 /* add external label to array by ic and label*/
 void addExternalLabel(int IC, char *label);
 
+void freeMemory();
 
 #endif //PROJ14_MEMORYSNAPSHOT_H

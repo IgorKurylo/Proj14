@@ -1,97 +1,84 @@
-; This file is intended to check the bad-path of the assembler.
-
-; Each line (except a few) contains an error in the assembly language code.
-; A comment preceding each line explains the error.
-
-; All errors should be detectable in the first pass of the assembler.
-
-; Run the assembler on this file, and verify that it catches all the errors.
-; Your assembler messages need not be identical to the comments in this file.
-
-; Disclaimer: this list of errors is not necessarily exhaustive; 
-;             you are encouraged to identify additional errors.
-
 ; 1. this line is ok (label DATA4 is declared later)
 Start:  dec DATA4
 
 ; 2. missing operand
-        sub #5
+sub #5
 
 ; 3. missing operand
-        sub #5,
+sub #5,
 
 ; 4. missing operand
-        red
+red
 
 ; 5. this line is ok (label declared as external)
-       .extern DATA4
+.extern DATA4
 
 ; 6. invalid target operand (immediate)
-        add  #5,#6
+add  #5,#6
 
 ; 7. this line is ok (immediate target operand allowed for cmp)
-Next:   cmp  #5,#6
+        Next:   cmp  #5,#6
 
 ; 8. invalid operand (immediate)
-        inc  #50
+inc  #50
 
 ; 9. undefined instruction name
-        and  r1,r2
+and  r1,r2
 
 ; 10. undefined instruction name (case sensitivity)
-        jSr  Start
+jSr  Start
 
 ; 11. invalid characters (,r2)
-        cmp  r1,,r2
+cmp  r1,,r2
 
 ; 12. invalid characters (,r3)
-        add  #5,r1,r3
+add  #5,r1,r3
 
 ; 13. invalid characters (blabla)
-        prn  r1 blabla
+prn  r1 blabla
 
 ; 14. invalid operand (undefined addressing mode)
-        prn  48
+prn  48
 
-; 15. invalid operand (incomplete immediate #)  
-        prn  # 48
+; 15. invalid operand (incomplete immediate #)
+prn  # 48
 
 ; 16. invalid characters (r3)
-        cmp  r1,#r3
+cmp  r1,#r3
 
 ; 17. label was already declared earlier
 Next:   clr  r2
 
 ; 18. label does not start in first column (optional error!)
-     label1:   sub  r1,r7
+label1:   sub  r1,r7
 
-; 19. invalid source operand (register)   
-        lea  r3,r1
+; 19. invalid source operand (register)
+lea  r3,r1
 
-; 20. invalid source operand (immediate)   
-        lea  #3,r5
+; 20. invalid source operand (immediate)
+lea  #3,r5
 
 ; 21. invalid operand (or invalid characters (Start))
-        stop Start
+stop Start
 
 ; 22. this line is ok (.data directive can be used without a label)
-        .data 400
+.data 400
 
 ; 23. this line is ok (.string directive can be used without a label)
-        .string "maman14"
+.string "maman14"
 
-; 24. invalid characters (400) 
+; 24. invalid characters (400)
 Z1:     .data   200 400
 
 ; 25. this line is ok (arbitrary spaces/tabs between fields or at end of line)
-DATA1:  .data   100,    	200 ,  -500,300, 500   				   
+DATA1:  .data   100,    	200 ,  -500,300, 500
 
 ; 26. this line is ok (arbitrary spaces/tabs between fields or at end of line)
-        cmp     r1  ,      DATA1   				   
+cmp     r1  ,      DATA1
 
 ; 27. this line is ok (no spaces/tabs between operands)
-        add     #1,r2
-        
+add     #1,r2
+
 ; 28. invalid characters (,3)
 Z2:     .data   1, ,3
 
@@ -126,28 +113,28 @@ Data1:  .data   100, +200, -300
 X:      .entry  DATA1
 
 ; 39. this line is ok (it is ok to declare the same external more than once)
-        .extern DATA4
+.extern DATA4
 
 ; 40. local label cannot be declared as external
-        .extern Start
+    .extern Start
 
 ; 41. this line is ok (label Y declaration ignored - warning may be issued)
 Y:      .extern DATA8
 
 ; 42. this line is ok (label STOP is declared later)
-        .entry  STOP
+.entry  STOP
 
-; 43 label already designated as external (possibly detected only in 2nd pass) 
-        .entry  DATA4
+; 43 label already designated as external (possibly detected only in 2nd pass)
+.entry  DATA4
 
 ; 44. invalid symbol (DATA2 is not an instruction name and not a valid label)
 DATA2   .data   4
 
 ; 45. undefined directive (case sensitivity of directive name)
-        .DATA   5
+.DATA   5
 
 ; 46. This line is ok (it is ok to designate the same entry more than once)
-        .entry  DATA1
+.entry  DATA1
 
 ; 47. invalid characters (blabla is not a string)
 Z7:     .string blabla
@@ -160,21 +147,21 @@ STR1:   .string "abc, ,defg"
 
 ; 50. invalid label (too long)
 SuperCalifragilisticExpiAlidocious: .data 4
-          
+
 ; 51. missing argument in directive
 Z9:     .data
 
 ; 52. missing argument in directive
-        .entry
+    .entry
 
 ; 53. undefined directive
 Z10:    .invalid 85, 90
 
 ; 54. this line is ok
-        rts
+rts
 
 ; 55. invalid operand (or invalid characters (Next))
-        rts Next
+rts Next
 
 ; 56. this line is ok (case sensitivity)
 STOP:   stop

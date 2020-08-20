@@ -38,7 +38,7 @@ SymbolTable *allocateTable() {
 /* add symbol to table*/
 int addSymbol(SymbolTable row, int lineNumber) {
 
-    // check if a symbol exists or not in the table, if not we update table size and add row to table.
+    /* check if a symbol exists or not in the table, if not we update table size and add row to table*/
     if (isSymbolExists(row.name) == -1) {
         tableSize++;
         table = (SymbolTable *) realloc(table, sizeof(SymbolTable) * tableSize);
