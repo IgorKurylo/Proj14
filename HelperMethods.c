@@ -777,7 +777,7 @@ int isExternDirective(char *line, char **labelExternal, int *errorCounter, int l
 
 /* check if data directive in correct formatting*/
 int isDataFormattingCorrect(char *directiveData, int *errorCounter, int lineNumber) {
-    int i = 0, j = 0, delim_counter = 0;
+    int i = 0, k = 0, j = 0, delim_counter = 0;
     if (strchr(directiveData, '#')) {
         printf("[ERROR] line %d: Can't write %c in start of number in data directive \n", lineNumber, '#');
         (*errorCounter)++;
@@ -795,22 +795,32 @@ int isDataFormattingCorrect(char *directiveData, int *errorCounter, int lineNumb
             return 0;
         }
     }
+    /*find delim twice between 2 numbers*/
     for (i = 0; i < strlen(directiveData); i++) {
-        while (directiveData[j] >= '0' && directiveData[j] <= '9') {
-            j++;
+        if (directiveData[i] == DELIM_CHAR && directiveData[i + 1] == DELIM_CHAR) {
+            delim_counter += 2;
+            break;
         }
-        if (directiveData[j] == DELIM_CHAR && directiveData[j + 1] == DELIM_CHAR) {
-            delim_counter++;
-            i = j;
-            j++;
+        if (directiveData[i] == DELIM_CHAR) {
+            i++;
+            j = i;
+            while (directiveData[j] == ' ') {
+                j++;
+
+            }
+            if (directiveData[j] == DELIM_CHAR) {
+                delim_counter += 2;
+                break;
+            }
+
         }
-        if (directiveData[j] == ' ') {
-            j++;
-            i = j;
-        }
+
+
     }
+
     if (delim_counter >= 2) {
-        printf("[ERROR] line %d: Can't write char %s twice between number in data directive\n", lineNumber, DELIM);
+        printf("[ERROR] line %d: Can't write char '%s' found more needed between number in data directive\n",
+               lineNumber, DELIM);
         (*errorCounter)++;
         return 0;
     }
@@ -822,7 +832,7 @@ int isDataFormattingCorrect(char *directiveData, int *errorCounter, int lineNumb
 int
 populateDataDirective(int *DC, int directiveType, char *directiveDefinedData, int *errorCounter, int linerNumber) {
     int *snapShotMemory, deltaDataCounter = 0;
-    if (isDataFormattingCorrect(directiveDefinedData, errorCounter, linerNumber)) {
+    if (directiveType == STRING_DIRECTIVE) {
         snapShotMemory = saveToSnapShotMemory(directiveDefinedData, directiveType, DC, &deltaDataCounter,
                                               errorCounter,
                                               linerNumber);
@@ -830,6 +840,17 @@ populateDataDirective(int *DC, int directiveType, char *directiveDefinedData, in
 
             *errorCounter++;
             printf("[ERROR] line %d : Can't add Data to Data memory block\n ", linerNumber);
+        }
+    } else if (directiveType == DATA_DIRECTIVE) {
+        if (isDataFormattingCorrect(directiveDefinedData, errorCounter, linerNumber)) {
+            snapShotMemory = saveToSnapShotMemory(directiveDefinedData, directiveType, DC, &deltaDataCounter,
+                                                  errorCounter,
+                                                  linerNumber);
+            if (snapShotMemory == NULL) {
+
+                *errorCounter++;
+                printf("[ERROR] line %d : Can't add Data to Data memory block\n ", linerNumber);
+            }
         }
     }
 
@@ -903,7 +924,15 @@ int isLabel(char *line) {
 }
 
 
-
-
+void printBinary(int a) {
+    int i = 0;
+    for (i = 24; i > 0; i--) {
+        if ((a & (1 << i)) != 0) {
+            putchar('1');
+        } else {
+            putchar('0');
+        }
+    }
+}
 
 

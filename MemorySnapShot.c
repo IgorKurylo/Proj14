@@ -76,7 +76,7 @@ saveInstruction(unsigned int opcode, unsigned int funct, unsigned int sourceOper
                 unsigned int destAddressType) {
     int index = machineCodeSize;
     int *machine_code_value;
-    Instruction instruction = {0};
+    Instruction instruction = {};
     instruction.opCode = opcode;
     instruction.funct = funct;
     instruction.srcRegister = sourceOperand;
@@ -90,15 +90,17 @@ saveInstruction(unsigned int opcode, unsigned int funct, unsigned int sourceOper
 }
 
 void
-saveWord(unsigned int value, unsigned int addressType,
+saveWord(int value, unsigned int addressType,
          int isLabelExternal) {
     int index = 0, *value_word;
     index = machineCodeSize;
-    Word word = {0};
+    Word word = {};
     if (addressType != -1) {
         if (addressType == DIRECT_ADDRESSING) {
-            if (isLabelExternal != -1) {
-                word.are = isLabelExternal ? external : relocatable;
+            if (isLabelExternal) {
+                word.are = external;
+            } else {
+                word.are = relocatable;
             }
         } else if (addressType == IMMEDIATE_ADDRESSING || addressType == RELATIVE_ADDRESSING) {
             word.are = absolute;
@@ -108,17 +110,22 @@ saveWord(unsigned int value, unsigned int addressType,
     value_word = (int *) &word;
     memoryCodeArray[index] = *value_word;
     machineCodeSize++;
+    printBinary(*value_word);
+    printf("\n");
 
 }
 
-void saveData(unsigned int value) {
-    int index = 0, *data_value;
+void saveData(int value) {
+    int index = 0;
+    int *data_value;
     index = machineCodeSize;
-    Data data = {0};
+    Data data = {};
     data.dataValue = value;
     data_value = (int *) &data;
-    memoryCodeArray[index] = *data_value;
+    memoryCodeArray[index] = (int) *data_value;
     machineCodeSize++;
+    printBinary(*data_value);
+    printf("\n");
 }
 
 char **initExternalLabels(int sizeOfIC) {

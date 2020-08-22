@@ -52,11 +52,11 @@ saveInstruction(unsigned int command, unsigned int funct, unsigned int sourceOpe
                 unsigned int destAddressType);
 
 /* save word in machine code array*/
-void saveWord(unsigned int value, unsigned int addressType,
+void saveWord(int value, unsigned int addressType,
               int isLabelExternal);
 
 /* save data in machine code array*/
-void saveData(unsigned int value);
+void saveData(int value);
 
 /* allocate machine memory array by size of machine code*/
 int *initMachineMemoryCode(int sizeOfMachineCode);

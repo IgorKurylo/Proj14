@@ -100,4 +100,5 @@ void adjustOffsetOfSrcDest(int sourceAddressType, int destAddressType, int *srcO
 
 int isLabel(char *line);
 
+void printBinary(int value);
 #endif

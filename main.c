@@ -46,8 +46,6 @@ int main(int argc, char *argv[]) {
                         DCF = DC;
                         /* update symbol table with IC+INIT ADDRESS = (100) */
                         updateSymbolTable((INIT_ADDRESS + IC));
-                        printf("\n");
-                        printSymbolTable();
                     }
                     IC = 0;
                     if (initMachineMemoryCode(ICF) != NULL && initExternalLabels(ICF) != NULL) {
@@ -64,6 +62,8 @@ int main(int argc, char *argv[]) {
                         generateOutputFiles(argv, i, ICF, DCF);
                     }
                 }
+                freeTable();
+                freeMemory();
             } else {
                 printf("[ERROR] File %s not exists\n", fileName);
             }

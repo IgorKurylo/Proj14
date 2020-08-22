@@ -12,8 +12,9 @@
 int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
 
     char *labelOperand = NULL, *command = NULL, *operands = NULL, *firstOperand = NULL, *secondOperand = NULL, *directiveData = NULL;
-    int errorCounter = 0, labelDestAddress = 0, labelSrcAddress = 0, isDistanceLabel = 0, regDest = -1, regSrc = -1, isSrcExternalLabel = 0, isDestExternalLabel = 0,
-            directiveType = 0, symbolIndex = 0, numOfOperands = 0, destAddressType = -1, srcAddressType = -1, operandDestType = -1, operandSrcType = -1, destOffset = 0, srcOffset = 0, valueSrc = 0, valueDest = 0;
+    int errorCounter = 0, labelDestAddress = 0, labelSrcAddress = 0, isDistanceLabel = 0, regDest = 0, regSrc = 0, isSrcExternalLabel = 0, isDestExternalLabel = 0,
+            directiveType = 0, symbolIndex = 0, numOfOperands = 0, operandDestType = -1, operandSrcType = -1, destOffset = 0, srcOffset = 0, valueSrc = 0, valueDest = 0;
+    int destAddressType = 0, srcAddressType = 0;
     Command commandObj;
     if (isComment(asmContentFile.line) || isEmptyLine(asmContentFile.line)) {
         return 0;
@@ -179,18 +180,18 @@ void buildMachineCode_2Operands(char *firstOperand, char *secondOperand, int lab
     if (operandSrcType == register_operand && operandDestType == label_operand) {
         regSrc = isRegister(firstOperand);
         saveInstruction((*commandObj).value.opCode, (*commandObj).value.funct, regSrc,
-                        srcAddressType, 0, 0);
+                        srcAddressType, regDest, destAddressType);
         saveWord(labelDestAddress, destAddressType, isSrcExternalLabel);
     }
     if (operandSrcType == label_operand && operandDestType == register_operand) {
         regDest = isRegister(secondOperand);
-        saveInstruction((*commandObj).value.opCode, (*commandObj).value.funct, 0,
-                        0, regDest, destAddressType);
+        saveInstruction((*commandObj).value.opCode, (*commandObj).value.funct, regSrc,
+                        srcAddressType, regDest, destAddressType);
         saveWord(labelSrcAddress, srcAddressType, isSrcExternalLabel);
     }
     if (operandSrcType == label_operand && operandDestType == number_operand) {
-        saveInstruction((*commandObj).value.opCode, (*commandObj).value.funct, 0,
-                        0, 0, 0);
+        saveInstruction((*commandObj).value.opCode, (*commandObj).value.funct, regSrc,
+                        srcAddressType, regDest, destAddressType);
         saveWord(labelSrcAddress, destAddressType, isSrcExternalLabel);
         saveWord(convertTo2Complement(valueDest), destAddressType, isSrcExternalLabel);
     }
@@ -201,16 +202,16 @@ void buildMachineCode_2Operands(char *firstOperand, char *secondOperand, int lab
                         srcAddressType, regDest, destAddressType);
     }
     if (operandSrcType == label_operand && operandDestType == label_operand) {
-        saveInstruction((*commandObj).value.opCode, (*commandObj).value.funct, 0,
-                        0, 0, 0);
+        saveInstruction((*commandObj).value.opCode, (*commandObj).value.funct, regSrc,
+                        srcAddressType, regDest, destAddressType);
         saveWord(labelSrcAddress, srcAddressType, isSrcExternalLabel);
         saveWord(labelDestAddress, destAddressType, isDestExternalLabel);
     }
     if (operandSrcType == number_operand && operandDestType == register_operand) {
         regDest = isRegister(secondOperand);
-        saveInstruction((*commandObj).value.opCode, (*commandObj).value.funct, 0,
-                        0, regDest, destAddressType);
-        saveWord(convertTo2Complement(valueSrc), srcAddressType, -1);
+        saveInstruction((*commandObj).value.opCode, (*commandObj).value.funct, regSrc,
+                        srcAddressType, regDest, destAddressType);
+        saveWord(convertTo2Complement(valueSrc), srcAddressType, 0);
     }
 }
 
