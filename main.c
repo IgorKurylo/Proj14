@@ -4,18 +4,15 @@
 #include "FileMethods.h"
 #include "FirstAsm.h"
 #include "SecondAsm.h"
-#include "SymbolTable.h"
-#include "MemorySnapShot.h"
 
 SymbolTable *table;
 int tableSize;
-char **externalLabels;
 int *memoryCodeArray;
 int machineCodeSize;
 
 void printSymbolTable();
 
-void generateOutputFiles(char *const *argv, int i, int ICF, int DCF, char *fileName);
+void generateOutputFiles(char *const *argv, int i, int ICF, int DCF);
 
 int main(int argc, char *argv[]) {
 
@@ -64,13 +61,9 @@ int main(int argc, char *argv[]) {
                         printf("[INFO] See all errors messages and warnings ,fix and run again\n");
                         exit(-1);
                     } else {
-                        generateOutputFiles(argv, i, ICF, DCF, fileName);
+                        generateOutputFiles(argv, i, ICF, DCF);
                     }
-
                 }
-                freeTable();
-                freeMemory();
-
             } else {
                 printf("[ERROR] File %s not exists\n", fileName);
             }
@@ -80,13 +73,20 @@ int main(int argc, char *argv[]) {
 }
 
 /* generate output files*/
-void generateOutputFiles(char *const *argv, int i, int ICF, int DCF, char *fileName) {
-    fileName = getFileName(argv[i]);
-    writeEntryFile(table, tableSize, fileName);
-    fileName = getFileName(argv[i]);
-    writeExternFile(externalLabels, ICF, fileName);
-    fileName = getFileName(argv[i]);
-    writeMachineCodeFile(ICF, DCF, memoryCodeArray, fileName);
+void generateOutputFiles(char *const *argv, int i, int ICF, int DCF) {
+    char *file_name;
+
+    file_name = getFileName(argv[i]);
+
+    writeEntryFile(table, tableSize, file_name);
+
+    file_name = getFileName(argv[i]);
+
+    writeExternFile(externalLabels, ICF, file_name);
+
+    file_name = getFileName(argv[i]);
+
+    writeMachineCodeFile(ICF, DCF, memoryCodeArray, file_name);
 }
 
 /* print symbol table from first read just for debugging*/

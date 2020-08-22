@@ -27,7 +27,7 @@ void writeMachineCodeFile(int IC, int DC, const int *machineCode, char *fileName
 void writeEntryFile(SymbolTable *table, int tableSize, char *fileName);
 
 /*write extern file*/
-void writeExternFile(char **externalsLabelsArray, int size, char *fileName);
+void writeExternFile(char **externalLabels, int size, char *fileName);
 
 /* get file name*/
 char *getFileName(char *file);

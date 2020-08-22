@@ -152,11 +152,13 @@ int parseLabel(char *line, char **labelName, int lineNumber, int *errorCounter) 
     } else {
         startLineString = getStringOnStartLine(line, labelName, originalLine, count);
         if (isCommandExists(startLineString, &number) >= 0) {
-            return -1; /*check is is command and we want parse command*/
-        }
-        if (isAlphaNumeric(startLineString)) {
+            return 0; /*check is command and we want parse command*/
+        } else if (isAlphaNumeric(startLineString)) {
             printf("[ERROR] line %d: Label is not valid\n", lineNumber);
+            labelName = NULL;
             (*errorCounter)++;
+            return 1;
+        } else if (*line == ' ') {
             return 0;
         }
 

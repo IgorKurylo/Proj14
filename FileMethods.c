@@ -42,18 +42,24 @@ AsmFileContent *fileContent(FILE *file, int *fileLines) {
 /*write entry file*/
 
 void writeEntryFile(SymbolTable *tableArray, int size, char *fileName) {
-    int i = 0;
+    int i = 0, counter = 0;
     FILE *filePtr;
     strcat(fileName, ENTRY_FILE);
-    filePtr = fopen(fileName, "w");
-    if (filePtr != NULL) {
-        for (i = 0; i < size; i++) {
-            if (tableArray[i].is_entry) {
-                fprintf(filePtr, "%s\t%07d\n", tableArray[i].name, tableArray[i].address);
+    for (i = 0; i < size; i++) {
+        if (tableArray[i].is_entry)
+            counter++;
+    }
+    if (counter > 0) {
+        filePtr = fopen(fileName, "w");
+        if (filePtr != NULL) {
+            for (i = 0; i < size; i++) {
+                if (tableArray[i].is_entry) {
+                    fprintf(filePtr, "%s\t%07d\n", tableArray[i].name, tableArray[i].address);
+                }
             }
+            fclose(filePtr);
+            printf("[INFO] File %s successfully created\n", fileName);
         }
-        fclose(filePtr);
-        printf("[INFO] File %s successfully created\n", fileName);
     }
 
 }
@@ -64,16 +70,19 @@ void writeExternFile(char **externalsLabelsArray, int size, char *fileName) {
     int i = 0;
     FILE *filePtr;
     strcat(fileName, EXTERNAL_FILE);
-    filePtr = fopen(fileName, "w");
-    if (filePtr != NULL) {
-        for (i = 0; i < size; i++) {
+    if (externalLabels != NULL) {
+        filePtr = fopen(fileName, "w");
+        if (filePtr != NULL) {
+            for (i = 0; i < size; i++) {
 
-            if (externalsLabelsArray[i] != NULL) {
-                fprintf(filePtr, "%s\t%07d\n", externalsLabelsArray[i], INIT_ADDRESS + i);
+                if (strcmp(externalLabels[i], "") > 0) {
+                    fprintf(filePtr, "%s\t%07d\n", externalLabels[i], INIT_ADDRESS + i);
+                }
             }
+            fclose(filePtr);
+            printf("[INFO] File %s successfully created\n", fileName);
         }
-        fclose(filePtr);
-        printf("[INFO] File %s successfully created\n", fileName);
+
     }
 }
 
@@ -102,6 +111,7 @@ char *getFileName(char *file) {
 void writeMachineCodeFile(int IC, int DC, const int *machine_code, char *fileName) {
     int index = 0, Value = 0;
     FILE *filePtr;
+    char *file = fileName;
     strcat(fileName, OBJECT_FILE);
     filePtr = fopen(fileName, "w");
     fprintf(filePtr, "%7d\t%d\n", IC, DC);

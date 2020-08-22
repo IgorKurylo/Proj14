@@ -8,7 +8,6 @@
 #include "SecondAsm.h"
 
 
-
 /* Second Read function which, parse labels,calculate distance of jmp,jre,bne commands , calculate IC and  build binary machine code */
 int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
 
@@ -95,8 +94,6 @@ int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
                     }
 
                 }
-
-
                 break;
             case 2:
                 parseTwoOperands(operands, &firstOperand, &secondOperand);
@@ -141,14 +138,14 @@ int secondRead(AsmFileContent asmContentFile, int *IC, int lineNumber) {
                 }
                 adaptOffsetsByAddressType(destAddressType, srcAddressType, &srcOffset, &destOffset);
                 calculateExternalLabelsAddresses(IC, firstOperand, secondOperand, isSrcExternalLabel,
-                                                isDestExternalLabel, destAddressType, srcAddressType,
-                                                destOffset, srcOffset);
+                                                 isDestExternalLabel, destAddressType, srcAddressType,
+                                                 destOffset, srcOffset);
                 *IC += srcOffset + destOffset + 1;
-                buildMachineCode2Operands(firstOperand, secondOperand, labelDestAddress, labelSrcAddress, regDest,
-                                          regSrc, isSrcExternalLabel,
-                                          isDestExternalLabel, destAddressType, srcAddressType, operandDestType,
-                                          operandSrcType, valueSrc, valueDest,
-                                          &commandObj);
+                buildMachineCode_2Operands(firstOperand, secondOperand, labelDestAddress, labelSrcAddress, regDest,
+                                           regSrc, isSrcExternalLabel,
+                                           isDestExternalLabel, destAddressType, srcAddressType, operandDestType,
+                                           operandSrcType, valueSrc, valueDest,
+                                           &commandObj);
                 break;
             default:
                 break;
@@ -175,10 +172,10 @@ void calculateExternalLabelsAddresses(const int *IC, char *firstOperand, char *s
     }
 }
 
-void buildMachineCode2Operands(char *firstOperand, char *secondOperand, int labelDestAddress, int labelSrcAddress,
-                               int regDest, int regSrc, int isSrcExternalLabel, int isDestExternalLabel,
-                               int destAddressType, int srcAddressType, int operandDestType, int operandSrcType,
-                               int valueSrc, int valueDest, Command *commandObj) {
+void buildMachineCode_2Operands(char *firstOperand, char *secondOperand, int labelDestAddress, int labelSrcAddress,
+                                int regDest, int regSrc, int isSrcExternalLabel, int isDestExternalLabel,
+                                int destAddressType, int srcAddressType, int operandDestType, int operandSrcType,
+                                int valueSrc, int valueDest, Command *commandObj) {
     if (operandSrcType == register_operand && operandDestType == label_operand) {
         regSrc = isRegister(firstOperand);
         saveInstruction((*commandObj).value.opCode, (*commandObj).value.funct, regSrc,
@@ -219,7 +216,6 @@ void buildMachineCode2Operands(char *firstOperand, char *secondOperand, int labe
 
 /* update the symbol which is external by correct address*/
 void updateExternalLabelAddress(int IC, char *operand) {
-
     addExternalLabel(IC, operand);
 }
 

@@ -22,10 +22,10 @@ void adaptOffsetsByAddressType(int destAddressType, int srcAddressType, int *src
 void updateExternalLabelAddress(int IC, char *operand);
 
 /* build machine code two operands*/
-void buildMachineCode2Operands(char *firstOperand, char *secondOperand, int labelDestAddress, int labelSrcAddress,
-                               int regDest, int regSrc, int isSrcExternalLabel, int isDestExternalLabel,
-                               int destAddressType, int srcAddressType, int operandDestType, int operandSrcType,
-                               int valueSrc, int valueDest, Command *commandObj);
+void buildMachineCode_2Operands(char *firstOperand, char *secondOperand, int labelDestAddress, int labelSrcAddress,
+                                int regDest, int regSrc, int isSrcExternalLabel, int isDestExternalLabel,
+                                int destAddressType, int srcAddressType, int operandDestType, int operandSrcType,
+                                int valueSrc, int valueDest, Command *commandObj);
 void calculateExternalLabelsAddresses(const int *IC, char *firstOperand, char *secondOperand,
                                       int isSrcExternalLabel, int isDestExternalLabel, int destAddressType,
                                       int srcAddressType, int destOffset, int srcOffset);

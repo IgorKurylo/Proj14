@@ -121,19 +121,23 @@ void saveData(unsigned int value) {
     machineCodeSize++;
 }
 
-
 char **initExternalLabels(int sizeOfIC) {
-    externalLabels = (char **) malloc(sizeof(char *) * sizeOfIC);
+    int i = 0;
+    externalLabels = (char **) malloc(sizeOfIC * sizeof(char *));
     if (externalLabels != NULL) {
+        for (i = 0; i < sizeOfIC; i++) {
+            externalLabels[i] = (char *) malloc(MAX_SYMBOL_SIZE + 1);
+        }
         return externalLabels;
+
     } else {
         return NULL;
     }
 }
 
-void addExternalLabel(int IC, char *label) {
+void addExternalLabel(int index, char *label) {
     if (externalLabels != NULL) {
-        externalLabels[IC] = label;
+        strcpy(externalLabels[index], label);
     }
 }
 

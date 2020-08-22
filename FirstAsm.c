@@ -46,13 +46,9 @@ int firstRead(AsmFileContent asmContentFile, int *IC, int *DC, int lineNumber) {
         return errorsCounter;
     }
     /* parse label*/
-    result = parseLabel(asmContentFile.line, &labelName, numberOfLine + 1, &errorsCounter);
-    if (result != -1) {
+    if (parseLabel(asmContentFile.line, &labelName, numberOfLine + 1, &errorsCounter)) {
         asmContentFile.isLabel = 1;
     }
-    if (result == 0)
-        return errorsCounter;
-
     /* parse directive .data/.string */
     if (parseDirective(asmContentFile.line, &directiveData, numberOfLine + 1, &directiveType, &errorsCounter)) {
 
@@ -68,7 +64,6 @@ int firstRead(AsmFileContent asmContentFile, int *IC, int *DC, int lineNumber) {
             populateDataDirective(DC, directiveType, directiveData, &errorsCounter, numberOfLine + 1);
         }
         return errorsCounter;
-
     }
     /*parse command */
     if (parseCommand(asmContentFile.line, &command, numberOfLine + 1, &numOfOperands, &errorsCounter,
@@ -84,6 +79,7 @@ int firstRead(AsmFileContent asmContentFile, int *IC, int *DC, int lineNumber) {
             printf("[ERROR] line %d: Error on parse operands from %s command\n", numberOfLine + 1, command);
             errorsCounter++;
         }
+
     }
     return errorsCounter;
 
